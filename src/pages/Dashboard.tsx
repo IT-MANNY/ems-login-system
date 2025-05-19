@@ -153,39 +153,39 @@ const Dashboard = () => {
     }
   }, [currentUser, showWelcomeMessage]);
 
-  // Format date display
+  // Format date display - fixed to use proper DateTimeFormatOptions
   const formatDate = (dateString) => {
     if (!dateString) return "ไม่มีข้อมูล";
     
     const date = new Date(dateString);
     const options = { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric', 
-      hour: '2-digit', 
-      minute: '2-digit' 
+      year: 'numeric' as const, 
+      month: 'long' as const, 
+      day: 'numeric' as const, 
+      hour: '2-digit' as const, 
+      minute: '2-digit' as const 
     };
     return new Intl.DateTimeFormat('th-TH', options).format(date);
   };
 
-  // Format short date
+  // Format short date - fixed to use proper DateTimeFormatOptions
   const formatShortDate = (dateString) => {
     if (!dateString) return "ไม่มีข้อมูล";
     
     const date = new Date(dateString);
     const options = { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric'
+      year: 'numeric' as const, 
+      month: 'short' as const, 
+      day: 'numeric' as const
     };
     return new Intl.DateTimeFormat('th-TH', options).format(date);
   };
 
-  // Relative time display
+  // Relative time display - fixed arithmetic operation with proper type handling
   const getRelativeTime = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
     
     if (diffInMinutes < 60) {
       return `${diffInMinutes} นาทีที่แล้ว`;
