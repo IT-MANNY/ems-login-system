@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Layout from "@/components/Layout";
 import {
@@ -234,7 +233,7 @@ const RequestDetail = ({ id, isOT, onAction }: RequestDetailProps) => {
           <>
             <div>
               <p className="text-sm text-blue-700">วันที่ขอทำงานล่วงเวลา</p>
-              <p className="font-medium">{formatThaiDate(request.date)}</p>
+              <p className="font-medium">{formatThaiDate((request as typeof MOCK_OT_REQUESTS[0]).date)}</p>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
