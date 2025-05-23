@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Table,
@@ -20,6 +19,7 @@ import {
   Upload,
   ArrowDownUp,
   Info,
+  Car,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,7 +52,12 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 // ประเภทหลักสูตรทั้งหมด
 const COURSE_TYPES = ["ทั้งหมด", "Soft Skills", "Technical", "Productivity", "Required", "Design"];
@@ -152,6 +157,24 @@ const MOCK_COURSES = [
   }
 ];
 
+const MOCK_TEAM_MEMBERS = [
+  { id: "M1", name: "สุรชัย มานะ", position: "หัวหน้าทีม" },
+  { id: "M2", name: "วิภาพร ใจดี", position: "เจ้าหน้าที่ฝึกอบรม" },
+  { id: "M3", name: "ธนกร พัฒนา", position: "เจ้าหน้าที่โสตฯ" },
+  { id: "M4", name: "นภาพร วงศ์สกุล", position: "เจ้าหน้าที่ลงทะเบียน" },
+  { id: "M5", name: "สมศักดิ์ การุณ", position: "พนักงานขับรถ" },
+  { id: "M6", name: "มนัส พากเพียร", position: "เจ้าหน้าที่ทั่วไป" },
+  { id: "M7", name: "พิไลพร จริยา", position: "เจ้าหน้าที่ประสานงาน" },
+  { id: "M8", name: "วีระพงษ์ สุขใจ", position: "ช่างเทคนิค" }
+];
+
+const MOCK_VEHICLES = [
+  { id: "V1", name: "รถตู้ 1", type: "รถตู้" },
+  { id: "V2", name: "รถตู้ 2", type: "รถตู้" },
+  { id: "V3", name: "รถเก๋ง 1", type: "รถเก๋ง" },
+  { id: "V4", name: "รถบัส", type: "รถบัส" }
+];
+
 const TrainingCourseList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("ทั้งหมด");
@@ -161,6 +184,15 @@ const TrainingCourseList = () => {
   const [showDetails, setShowDetails] = useState<string | null>(null);
   const [currentTab, setCurrentTab] = useState("active");
   const [selectedPopularity, setSelectedPopularity] = useState<string[]>([]);
+  const [trainingDate, setTrainingDate] = useState<Date | undefined>(new Date());
+  const [selectedCourse, setSelectedCourse] = useState("");
+  const [trainingType, setTrainingType] = useState("Public");
+  const [capacity, setCapacity] = useState("30");
+  const [location, setLocation] = useState("");
+  const [company, setCompany] = useState("");
+  const [instructor, setInstructor] = useState("");
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [selectedVehicle, setSelectedVehicle] = useState<string>("");
 
   // กรองหลักสูตรตามคำค้นหาและประเภท
   const filteredCourses = MOCK_COURSES
@@ -267,6 +299,43 @@ const TrainingCourseList = () => {
     });
   };
 
+  // เพิ่มหรือลบสมาชิกทีมในรายการที่เลือก
+  const toggleMemberSelection = (memberId: string) => {
+    if (selectedMembers.includes(memberId)) {
+      setSelectedMembers(selectedMembers.filter(id => id !== memberId));
+    } else {
+      setSelectedMembers([...selectedMembers, memberId]);
+    }
+  };
+
+  // บันทึกรอบการอบรมใหม่
+  const handleSaveTrainingSession = () => {
+    if (!trainingDate || !selectedCourse || !location || !company || !instructor) {
+      toast({
+        title: "กรุณากรอกข้อมูลให้ครบถ้วน",
+        description: "โปรดตรวจสอบข้อมูลและกรอกให้ครบทุกช่องที่จำเป็น",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    toast({
+      title: "บันทึกรอบการอบรมสำเร็จ",
+      description: `สร้างรอบการอบรม ${format(trainingDate, "dd/MM/yyyy")} เรียบร้อยแล้ว`,
+    });
+    
+    // รีเซ็ตข้อมูล
+    setTrainingDate(new Date());
+    setSelectedCourse("");
+    setTrainingType("Public");
+    setCapacity("30");
+    setLocation("");
+    setCompany("");
+    setInstructor("");
+    setSelectedMembers([]);
+    setSelectedVehicle("");
+  };
+
   return (
     <div className="space-y-6">
       {/* แผงข้อมูลสรุป */}
@@ -337,64 +406,150 @@ const TrainingCourseList = () => {
             <DialogTrigger asChild>
               <Button className="flex items-center gap-1">
                 <Plus className="h-4 w-4" />
-                <span>สร้างหลักสูตรใหม่</span>
+                <span>สร้างรอบการอบรม</span>
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-[800px]">
               <DialogHeader>
-                <DialogTitle>สร้างหลักสูตรใหม่</DialogTitle>
+                <DialogTitle>สร้างรอบการอบรม</DialogTitle>
                 <DialogDescription>
-                  กรอกข้อมูลหลักสูตรที่ต้องการสร้าง เมื่อเสร็จแล้วกดบันทึก
+                  กรอกข้อมูลรอบการอบรมที่ต้องการสร้าง เมื่อเสร็จแล้วกดบันทึก
                 </DialogDescription>
               </DialogHeader>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
                 <div className="grid grid-cols-1 gap-3">
                   <div className="space-y-2">
-                    <label htmlFor="courseId" className="text-sm font-medium">รหัสหลักสูตร</label>
-                    <Input id="courseId" placeholder="C000" />
+                    <label className="text-sm font-medium">วันที่อบรม</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !trainingDate && "text-muted-foreground"
+                          )}
+                        >
+                          <Calendar className="mr-2 h-4 w-4" />
+                          {trainingDate ? format(trainingDate, "dd/MM/yyyy") : <span>เลือกวันที่</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={trainingDate}
+                          onSelect={setTrainingDate}
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
                   
                   <div className="space-y-2">
-                    <label htmlFor="courseName" className="text-sm font-medium">ชื่อหลักสูตร</label>
-                    <Input id="courseName" placeholder="ชื่อหลักสูตร" />
+                    <label className="text-sm font-medium">หลักสูตร</label>
+                    <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="เลือกหลักสูตร" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MOCK_COURSES.map(course => (
+                          <SelectItem key={course.id} value={course.id}>
+                            {course.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   <div className="space-y-2">
-                    <label htmlFor="courseType" className="text-sm font-medium">ประเภทหลักสูตร</label>
-                    <select id="courseType" className="w-full border rounded p-2">
-                      {COURSE_TYPES.filter(type => type !== "ทั้งหมด").map(type => (
-                        <option key={type} value={type}>{type}</option>
-                      ))}
-                    </select>
+                    <label className="text-sm font-medium">ประเภทงานอบรม</label>
+                    <Select value={trainingType} onValueChange={setTrainingType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="เลือกประเภทงานอบรม" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Public">Public</SelectItem>
+                        <SelectItem value="Inhouse">Inhouse</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   <div className="space-y-2">
-                    <label htmlFor="courseDuration" className="text-sm font-medium">ระยะเวลา</label>
-                    <div className="flex gap-2">
-                      <Input id="courseDuration" type="number" placeholder="0" />
-                      <select className="border rounded p-2 w-32">
-                        <option>ชั่วโมง</option>
-                        <option>วัน</option>
-                      </select>
-                    </div>
+                    <label className="text-sm font-medium">จำนวน (คน)</label>
+                    <Input 
+                      type="number" 
+                      value={capacity} 
+                      onChange={(e) => setCapacity(e.target.value)}
+                      min="1" 
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">สถานที่จัดฝึกอบรม</label>
+                    <Input 
+                      placeholder="ระบุสถานที่" 
+                      value={location} 
+                      onChange={(e) => setLocation(e.target.value)}
+                    />
                   </div>
                 </div>
                 
                 <div className="grid grid-cols-1 gap-3">
                   <div className="space-y-2">
-                    <label htmlFor="courseCapacity" className="text-sm font-medium">ความจุ (คน)</label>
-                    <Input id="courseCapacity" type="number" placeholder="0" />
+                    <label className="text-sm font-medium">บริษัท</label>
+                    <Input 
+                      placeholder="ระบุบริษัท" 
+                      value={company}
+                      onChange={(e) => setCompany(e.target.value)}
+                    />
                   </div>
                   
                   <div className="space-y-2">
-                    <label htmlFor="courseTarget" className="text-sm font-medium">กลุ่มเป้าหมาย</label>
-                    <Input id="courseTarget" placeholder="กลุ่มเป้าหมาย" />
+                    <label className="text-sm font-medium">วิทยากร</label>
+                    <Input 
+                      placeholder="ระบุชื่อวิทยากร" 
+                      value={instructor}
+                      onChange={(e) => setInstructor(e.target.value)}
+                    />
                   </div>
                   
                   <div className="space-y-2">
-                    <label htmlFor="courseDescription" className="text-sm font-medium">คำอธิบาย</label>
-                    <Textarea id="courseDescription" placeholder="คำอธิบายหลักสูตร" rows={4} />
+                    <label className="text-sm font-medium">รถ (ถ้ามี)</label>
+                    <Select value={selectedVehicle} onValueChange={setSelectedVehicle}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="เลือกยานพาหนะ (ถ้าต้องการ)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">-- ไม่ต้องการรถ --</SelectItem>
+                        {MOCK_VEHICLES.map(vehicle => (
+                          <SelectItem key={vehicle.id} value={vehicle.id}>
+                            {vehicle.name} ({vehicle.type})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">ทีมงาน</label>
+                    <div className="border rounded-lg max-h-[150px] overflow-y-auto p-2">
+                      {MOCK_TEAM_MEMBERS.map(member => (
+                        <div key={member.id} className="flex items-center space-x-2 py-1">
+                          <Checkbox 
+                            id={`member-${member.id}`} 
+                            checked={selectedMembers.includes(member.id)}
+                            onCheckedChange={() => toggleMemberSelection(member.id)}
+                          />
+                          <label 
+                            htmlFor={`member-${member.id}`}
+                            className="text-sm flex items-center justify-between w-full cursor-pointer"
+                          >
+                            <span>{member.name}</span>
+                            <span className="text-xs text-muted-foreground">{member.position}</span>
+                          </label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -403,7 +558,7 @@ const TrainingCourseList = () => {
                 <DialogClose asChild>
                   <Button variant="outline">ยกเลิก</Button>
                 </DialogClose>
-                <Button onClick={handleSaveChanges}>สร้างหลักสูตร</Button>
+                <Button onClick={handleSaveTrainingSession}>บันทึกรอบการอบรม</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
