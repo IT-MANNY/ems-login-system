@@ -1,8 +1,18 @@
 
 import { useState } from "react";
-import { Team, Course, TeamAssignment, TeamMember, Vehicle } from "@/types/training";
+import { Course, TeamMember, Vehicle } from "@/types/training";
 
-// ข้อมูลตัวอย่างสำหรับสมาชิกทีม
+// ประเภทข้อมูลใหม่สำหรับการมอบหมายงาน
+interface CourseAssignment {
+  id: string;
+  courseId: string;
+  date: string;
+  members: string[];
+  vehicle?: string;
+  notes?: string;
+}
+
+// ข้อมูลตัวอย่างสำหรับสมาชิก
 const MOCK_TEAM_MEMBERS: TeamMember[] = [
   { id: "M1", name: "สุรชัย มานะ", position: "หัวหน้าทีม", skills: ["การประสานงาน", "ดูแลภาพรวม"] },
   { id: "M2", name: "วิภาพร ใจดี", position: "เจ้าหน้าที่ฝึกอบรม", skills: ["จัดการเอกสาร", "ประสานงานวิทยากร"] },
@@ -22,17 +32,7 @@ const MOCK_VEHICLES: Vehicle[] = [
   { id: "V4", name: "รถบัส", type: "รถบัส", capacity: 40, status: "ว่าง" }
 ];
 
-// ข้อมูลตัวอย่างสำหรับทีม
-const MOCK_TEAMS: Team[] = [
-  { id: "T1", name: "ทีมฝ่ายบุคคล", members: 5 },
-  { id: "T2", name: "ทีมฝ่ายพัฒนา", members: 4 },
-  { id: "T3", name: "ทีมฝึกอบรม", members: 6 },
-  { id: "T4", name: "ทีมไอที", members: 3 },
-  { id: "T5", name: "ทีมนวัตกรรม", members: 4 },
-  { id: "T6", name: "ทีมความปลอดภัย", members: 5 }
-];
-
-// ข้อมูลตัวอย่างสำหรับหลักสูตรที่จะจัดในเดือนต่างๆ
+// ข้อมูลตัวอย่างสำหรับหลักสูตร
 const MOCK_COURSES: Course[] = [
   {
     id: "C001",
@@ -96,11 +96,10 @@ const MOCK_COURSES: Course[] = [
   }
 ];
 
-// ข้อมูลตัวอย่างสำหรับการกำหนดทีมให้กับหลักสูตร
-const MOCK_ASSIGNMENTS: TeamAssignment[] = [
+// ข้อมูลตัวอย่างสำหรับการกำหนดเจ้าหน้าที่ให้กับหลักสูตร
+const MOCK_ASSIGNMENTS: CourseAssignment[] = [
   { 
     id: "A1", 
-    teamId: "T1", 
     courseId: "C001", 
     date: "2025-06-15",
     members: ["M1", "M2"],
@@ -108,75 +107,59 @@ const MOCK_ASSIGNMENTS: TeamAssignment[] = [
   },
   { 
     id: "A2", 
-    teamId: "T2", 
     courseId: "C001", 
     date: "2025-06-15",
     members: ["M3", "M4"]
   },
   { 
     id: "A3", 
-    teamId: "T3", 
     courseId: "C002", 
     date: "2025-06-18",
     members: ["M2", "M7"]
   },
   { 
     id: "A4", 
-    teamId: "T2", 
     courseId: "C003", 
     date: "2025-06-22",
-    members: ["M4", "M6"],
+    members: ["M4", "M6", "M8"],
     vehicle: "V3"
-  },
-  { 
-    id: "A5", 
-    teamId: "T4", 
-    courseId: "C003", 
-    date: "2025-06-22",
-    members: ["M3", "M8"]
-  },
-  { 
-    id: "A6", 
-    teamId: "T5", 
-    courseId: "C003", 
-    date: "2025-06-22",
-    members: ["M1"]
   }
 ];
 
 const useTeamAssignment = () => {
-  const [teams] = useState<Team[]>(MOCK_TEAMS);
   const [courses] = useState<Course[]>(MOCK_COURSES);
-  const [assignments, setAssignments] = useState<TeamAssignment[]>(MOCK_ASSIGNMENTS);
+  const [assignments, setAssignments] = useState<CourseAssignment[]>(MOCK_ASSIGNMENTS);
   const [teamMembers] = useState<TeamMember[]>(MOCK_TEAM_MEMBERS);
   const [vehicles] = useState<Vehicle[]>(MOCK_VEHICLES);
   
-  // กำหนดทีมให้กับหลักสูตร
-  const assignTeam = (teamId: string, courseId: string, date: string) => {
-    // ตรวจสอบว่าทีมนี้ได้ถูกกำหนดให้กับหลักสูตรนี้แล้วหรือไม่
-    const exists = assignments.some(
-      a => a.teamId === teamId && a.courseId === courseId && a.date === date
+  // สร้างการมอบหมายงานใหม่
+  const createAssignment = (courseId: string, date: string) => {
+    // ตรวจสอบว่าหลักสูตรนี้มีการมอบหมายงานแล้วหรือไม่
+    const existingAssignment = assignments.find(
+      a => a.courseId === courseId && a.date === date
     );
     
-    if (!exists) {
-      const newAssignment: TeamAssignment = {
+    if (!existingAssignment) {
+      const newAssignment: CourseAssignment = {
         id: `A${Date.now()}`,
-        teamId,
         courseId,
         date,
         members: []
       };
       
       setAssignments([...assignments, newAssignment]);
+      return newAssignment.id;
     }
+    
+    return existingAssignment.id;
   };
   
-  // ลบการกำหนดทีม
+  // ลบการมอบหมายงาน
   const removeAssignment = (assignmentId: string) => {
     setAssignments(assignments.filter(a => a.id !== assignmentId));
   };
 
-  // กำหนดสมาชิกทีมให้กับการมอบหมายงาน
+  // เพิ่มเจ้าหน้าที่ให้กับการมอบหมายงาน
   const assignMember = (assignmentId: string, memberId: string) => {
     setAssignments(assignments.map(assignment => {
       if (assignment.id === assignmentId) {
@@ -193,10 +176,10 @@ const useTeamAssignment = () => {
     }));
   };
 
-  // ลบสมาชิกทีมจากการมอบหมายงาน
+  // ลบเจ้าหน้าที่จากการมอบหมายงาน
   const removeMember = (assignmentId: string, memberId: string) => {
     setAssignments(assignments.map(assignment => {
-      if (assignment.id === assignmentId && assignment.members) {
+      if (assignment.id === assignmentId) {
         return {
           ...assignment,
           members: assignment.members.filter(id => id !== memberId)
@@ -219,17 +202,30 @@ const useTeamAssignment = () => {
     }));
   };
   
+  // เพิ่มโน้ตให้การมอบหมายงาน
+  const addNotes = (assignmentId: string, notes: string) => {
+    setAssignments(assignments.map(assignment => {
+      if (assignment.id === assignmentId) {
+        return {
+          ...assignment,
+          notes
+        };
+      }
+      return assignment;
+    }));
+  };
+  
   return {
-    teams,
     courses,
     assignments,
     teamMembers,
     vehicles,
-    assignTeam,
+    createAssignment,
     removeAssignment,
     assignMember,
     removeMember,
-    assignVehicle
+    assignVehicle,
+    addNotes
   };
 };
 

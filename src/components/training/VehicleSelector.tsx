@@ -30,7 +30,7 @@ const VehicleSelector = ({
       </div>
       
       <select
-        className="border rounded p-1 text-sm w-full"
+        className="border rounded p-2 text-sm w-full"
         value={selectedVehicleId || ""}
         onChange={(e) => onSelectVehicle(e.target.value || null)}
       >

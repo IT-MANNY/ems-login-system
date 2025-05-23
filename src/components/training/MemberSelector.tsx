@@ -34,7 +34,7 @@ const MemberSelector = ({
             key={member.id} 
             className="flex items-center gap-1 bg-blue-100 hover:bg-blue-200 text-blue-800 px-2 py-1"
           >
-            <span>{member.name}</span>
+            <span>{member.name} {member.position && `(${member.position})`}</span>
             <button
               type="button"
               onClick={() => onRemoveMember(member.id)}
@@ -45,12 +45,12 @@ const MemberSelector = ({
           </Badge>
         ))}
         {selectedMembers.length === 0 && (
-          <p className="text-sm text-gray-500 italic">ยังไม่มีสมาชิกในทีมที่ถูกเลือก</p>
+          <p className="text-sm text-gray-500 italic">ยังไม่มีเจ้าหน้าที่ที่ถูกเลือก</p>
         )}
       </div>
       
       <select
-        className="border rounded p-1 text-sm w-full"
+        className="border rounded p-2 text-sm w-full"
         onChange={(e) => {
           if (e.target.value) {
             onAddMember(e.target.value);
@@ -59,7 +59,7 @@ const MemberSelector = ({
         }}
         value=""
       >
-        <option value="">+ เพิ่มสมาชิกทีม</option>
+        <option value="">+ เพิ่มเจ้าหน้าที่</option>
         {unselectedMembers.map(member => (
           <option key={member.id} value={member.id}>
             {member.name} - {member.position}
