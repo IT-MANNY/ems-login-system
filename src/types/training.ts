@@ -3,6 +3,9 @@ export interface Team {
   id: string;
   name: string;
   members: number;
+  department?: string;  // เพิ่มแผนก
+  availability?: string[]; // วันที่พร้อมทำงาน
+  specialties?: string[]; // ความเชี่ยวชาญพิเศษ
 }
 
 export interface Course {
@@ -14,6 +17,11 @@ export interface Course {
   registered: number;
   duration: string;
   location: string;
+  description?: string; // คำอธิบายเพิ่มเติม
+  prerequisites?: string[]; // ความต้องการพื้นฐาน
+  status?: string; // สถานะของหลักสูตร (เปิดรับสมัคร, ปิดรับสมัคร, ยกเลิก)
+  materials?: string[]; // อุปกรณ์ที่ต้องใช้
+  targetAudience?: string; // กลุ่มเป้าหมาย
 }
 
 export interface TeamAssignment {
@@ -21,4 +29,45 @@ export interface TeamAssignment {
   teamId: string;
   courseId: string;
   date: string;
+  role?: string; // บทบาทในการดูแล (ผู้นำทีม, ผู้สอน, ผู้ช่วย)
+  notes?: string; // หมายเหตุเพิ่มเติม
+  status?: string; // สถานะการมอบหมาย (ยืนยันแล้ว, รอการยืนยัน)
+}
+
+// เพิ่มประเภทสำหรับรายงานและการวิเคราะห์
+export interface TrainingReport {
+  courseId: string;
+  courseName: string;
+  date: string;
+  teamsAssigned: number;
+  registrationRate: number; // อัตราการลงทะเบียน (%)
+  status: string;
+}
+
+// เพิ่มประเภทสำหรับการเปรียบเทียบกับเป้าหมาย
+export interface TrainingGoal {
+  year: number;
+  quarter: string;
+  targetCourses: number;
+  completedCourses: number;
+  targetParticipants: number;
+  actualParticipants: number;
+}
+
+// เพิ่มประเภทสำหรับการตรวจสอบทรัพยากร
+export interface ResourceRequirement {
+  courseId: string;
+  date: string;
+  roomRequired: boolean;
+  equipmentRequired: string[];
+  materialsNeeded: string[];
+}
+
+// เพิ่มประเภทสำหรับความขัดแย้งในตาราง
+export interface ScheduleConflict {
+  teamId: string;
+  courseId1: string;
+  courseId2: string;
+  date: string;
+  conflictType: string; // ประเภทความขัดแย้ง (ทีมซ้ำซ้อน, ห้องซ้ำซ้อน)
 }
