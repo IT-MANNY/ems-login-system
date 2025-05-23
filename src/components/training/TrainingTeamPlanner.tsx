@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Calendar } from "lucide-react";
+import { Calendar, Users, Car } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -23,20 +23,41 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import TrainingTeamCard from "@/components/training/TrainingTeamCard";
 import useTeamAssignment from "@/hooks/useTeamAssignment";
+import MemberSelector from "./MemberSelector";
+import VehicleSelector from "./VehicleSelector";
 
 const TrainingTeamPlanner = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("06"); // June
-  const { teams, courses, assignments, assignTeam, removeAssignment } = useTeamAssignment();
+  const { 
+    teams, 
+    courses, 
+    assignments, 
+    teamMembers,
+    vehicles,
+    assignTeam, 
+    removeAssignment,
+    assignMember,
+    removeMember,
+    assignVehicle
+  } = useTeamAssignment();
 
   const filterBySearch = (item: any) => {
     if (!searchTerm.trim()) return true;
     return (
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (item.id && item.id.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (item.date && item.date.includes(searchTerm))
+      (item.date && item.date.includes(searchTerm)) ||
+      (item.type && item.type.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (item.instructor && item.instructor.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (item.company && item.company.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   };
 
@@ -49,6 +70,20 @@ const TrainingTeamPlanner = () => {
       const courseMonth = course.date.split("-")[1];
       return courseMonth === selectedMonth && filterBySearch(course);
     });
+
+  // ฟังก์ชันสำหรับการจัดการสมาชิกทีมในการมอบหมายงาน
+  const handleAddMember = (assignmentId: string, memberId: string) => {
+    assignMember(assignmentId, memberId);
+  };
+
+  const handleRemoveMember = (assignmentId: string, memberId: string) => {
+    removeMember(assignmentId, memberId);
+  };
+
+  // ฟังก์ชันสำหรับการจัดการรถ
+  const handleAssignVehicle = (assignmentId: string, vehicleId: string | null) => {
+    assignVehicle(assignmentId, vehicleId);
+  };
 
   return (
     <div className="space-y-6">
@@ -104,7 +139,15 @@ const TrainingTeamPlanner = () => {
                 </select>
               </div>
               
-              <Button size="sm">สร้างทีมใหม่</Button>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="ค้นหาหลักสูตร..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-48"
+                />
+                <Button size="sm">สร้างทีมใหม่</Button>
+              </div>
             </div>
             
             <Card className="flex-1">
@@ -121,8 +164,10 @@ const TrainingTeamPlanner = () => {
                         <TableHead>วันที่</TableHead>
                         <TableHead>หลักสูตร</TableHead>
                         <TableHead>ประเภท</TableHead>
-                        <TableHead>จำนวนผู้เข้าอบรม</TableHead>
-                        <TableHead>ระยะเวลา</TableHead>
+                        <TableHead>วิทยากร</TableHead>
+                        <TableHead>บริษัท</TableHead>
+                        <TableHead>สถานที่</TableHead>
+                        <TableHead>จำนวน</TableHead>
                         <TableHead>ทีมที่ดูแล</TableHead>
                         <TableHead>การจัดการ</TableHead>
                       </TableRow>
@@ -150,26 +195,93 @@ const TrainingTeamPlanner = () => {
                                 <Badge variant="outline">{course.type}</Badge>
                               </TableCell>
                               <TableCell>
+                                {course.instructor || "-"}
+                              </TableCell>
+                              <TableCell>
+                                {course.company || "-"}
+                              </TableCell>
+                              <TableCell>
+                                {course.location || "-"}
+                              </TableCell>
+                              <TableCell>
                                 {course.registered}/{course.capacity}
                               </TableCell>
-                              <TableCell>{course.duration}</TableCell>
                               <TableCell>
                                 {courseAssignments.length > 0 ? (
                                   <div className="flex flex-col gap-1">
                                     {courseAssignments.map((assignment) => {
                                       const team = teams.find(t => t.id === assignment.teamId);
+                                      const assignedMembers = assignment.members || [];
+                                      const hasVehicle = assignment.vehicle;
+                                      
                                       return team ? (
                                         <div 
                                           key={assignment.id} 
                                           className="flex items-center justify-between gap-2 bg-blue-50 px-2 py-1 rounded-md text-sm"
                                         >
-                                          <span className="truncate">{team.name}</span>
-                                          <button 
-                                            className="text-gray-500 hover:text-red-500"
-                                            onClick={() => removeAssignment(assignment.id)}
-                                          >
-                                            &times;
-                                          </button>
+                                          <div className="flex items-center gap-1">
+                                            <span className="truncate font-medium">{team.name}</span>
+                                            
+                                            {/* แสดงจำนวนสมาชิก */}
+                                            <Badge variant="outline" className="ml-1 text-xs">
+                                              <Users className="h-3 w-3 mr-0.5" />
+                                              {assignedMembers.length}
+                                            </Badge>
+                                            
+                                            {/* แสดงไอคอนรถถ้ามีการใช้รถ */}
+                                            {hasVehicle && (
+                                              <Badge variant="outline" className="bg-green-50 ml-1 text-xs border-green-200 text-green-700">
+                                                <Car className="h-3 w-3 mr-0.5" />
+                                              </Badge>
+                                            )}
+                                          </div>
+                                          
+                                          <div className="flex gap-1">
+                                            {/* ปุ่ม popover สำหรับจัดการสมาชิกและรถ */}
+                                            <Popover>
+                                              <PopoverTrigger asChild>
+                                                <Button 
+                                                  variant="ghost" 
+                                                  size="sm" 
+                                                  className="h-6 px-1.5 text-gray-500"
+                                                >
+                                                  <Users className="h-3.5 w-3.5" />
+                                                </Button>
+                                              </PopoverTrigger>
+                                              <PopoverContent 
+                                                className="w-80" 
+                                                align="start"
+                                                side="right"
+                                              >
+                                                <div className="space-y-4">
+                                                  <div>
+                                                    <h4 className="font-medium mb-2">จัดการสมาชิกทีม {team.name}</h4>
+                                                    <MemberSelector
+                                                      selectedMemberIds={assignedMembers}
+                                                      availableMembers={teamMembers}
+                                                      onAddMember={(memberId) => handleAddMember(assignment.id, memberId)}
+                                                      onRemoveMember={(memberId) => handleRemoveMember(assignment.id, memberId)}
+                                                    />
+                                                  </div>
+                                                  
+                                                  <div>
+                                                    <VehicleSelector
+                                                      selectedVehicleId={assignment.vehicle}
+                                                      availableVehicles={vehicles}
+                                                      onSelectVehicle={(vehicleId) => handleAssignVehicle(assignment.id, vehicleId)}
+                                                    />
+                                                  </div>
+                                                </div>
+                                              </PopoverContent>
+                                            </Popover>
+                                            
+                                            <button 
+                                              className="text-gray-500 hover:text-red-500 p-1"
+                                              onClick={() => removeAssignment(assignment.id)}
+                                            >
+                                              &times;
+                                            </button>
+                                          </div>
                                         </div>
                                       ) : null;
                                     })}
@@ -213,7 +325,7 @@ const TrainingTeamPlanner = () => {
                         })
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center py-10 text-gray-500">
+                          <TableCell colSpan={9} className="text-center py-10 text-gray-500">
                             ไม่พบข้อมูลหลักสูตรในเดือนนี้
                           </TableCell>
                         </TableRow>
