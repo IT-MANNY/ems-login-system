@@ -131,7 +131,6 @@ const TrainingTeamPlanner = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-60"
-            prefix={<Search className="h-4 w-4 text-gray-400" />}
           />
         </div>
       </div>
@@ -303,18 +302,7 @@ const TrainingTeamPlanner = () => {
                                 size="sm"
                                 variant="outline"
                                 className="ml-4"
-                                onClick={() => {
-                                  const newAssignmentId = createAssignment(course.id, course.date);
-                                  if (newAssignmentId) {
-                                    // เปิดป๊อปอัพเพื่อเลือกเจ้าหน้าที่ทันที
-                                    setTimeout(() => {
-                                      const element = document.getElementById(`member-btn-${newAssignmentId}`);
-                                      if (element) {
-                                        (element as HTMLButtonElement).click();
-                                      }
-                                    }, 100);
-                                  }
-                                }}
+                                onClick={() => createAssignment(course.id, course.date)}
                               >
                                 <Users className="h-3.5 w-3.5 mr-1" />
                                 เพิ่มเจ้าหน้าที่
