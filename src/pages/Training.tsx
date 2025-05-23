@@ -33,7 +33,6 @@ const MOCK_TRAINING_DATA = [
   {
     id: "TR001",
     name: "การพัฒนาทักษะการสื่อสารในองค์กร",
-    type: "Soft Skills",
     date: "2025-03-15",
     location: "ห้องประชุมใหญ่ สำนักงานใหญ่",
     company: "Training Excellence Co., Ltd.",
@@ -44,7 +43,6 @@ const MOCK_TRAINING_DATA = [
   {
     id: "TR002",
     name: "การบริหารจัดการเวลาอย่างมีประสิทธิภาพ",
-    type: "Productivity",
     date: "2025-04-22",
     location: "ห้องอบรม 2 อาคาร B",
     company: "Time Management Institute",
@@ -55,7 +53,6 @@ const MOCK_TRAINING_DATA = [
   {
     id: "TR003",
     name: "เทคโนโลยีสมัยใหม่กับการทำงาน",
-    type: "Technical",
     date: "2025-06-10",
     location: "ห้องประชุม Innovation Hub",
     company: "TechTrain Thailand",
@@ -66,7 +63,6 @@ const MOCK_TRAINING_DATA = [
   {
     id: "TR004",
     name: "การวิเคราะห์ข้อมูลสำหรับการตัดสินใจ",
-    type: "Technical",
     date: "2025-07-05",
     location: "ศูนย์อบรมดิจิทัล",
     company: "Data Decision Co., Ltd.",
@@ -77,7 +73,6 @@ const MOCK_TRAINING_DATA = [
   {
     id: "TR005",
     name: "กฎหมายแรงงานที่หัวหน้างานควรรู้",
-    type: "Required",
     date: "2025-03-30",
     location: "ห้องกฎหมาย อาคารสำนักงานใหญ่",
     company: "Legal Expert Team",
@@ -92,29 +87,35 @@ const MOCK_AVAILABLE_COURSES = [
   {
     id: "CR001",
     name: "ความปลอดภัยในการทำงาน",
-    type: "Required",
     date: "2025-06-20",
     seats: 30,
     remaining: 12,
-    duration: "3 ชั่วโมง"
+    duration: "3 ชั่วโมง",
+    location: "ห้องประชุมใหญ่ สำนักงานใหญ่",
+    company: "Safety First Co., Ltd.",
+    instructor: "คุณสมหวัง ปลอดภัย"
   },
   {
     id: "CR002",
     name: "ทักษะการเป็นผู้นำยุคใหม่",
-    type: "Leadership",
     date: "2025-06-25",
     seats: 20,
     remaining: 5,
-    duration: "6 ชั่วโมง"
+    duration: "6 ชั่วโมง",
+    location: "ห้องอบรมพิเศษ ชั้น 5",
+    company: "Leadership Academy",
+    instructor: "ดร.นำพา ก้าวหน้า"
   },
   {
     id: "CR003",
     name: "เทคนิคการนำเสนองานอย่างมืออาชีพ",
-    type: "Soft Skills",
     date: "2025-07-15",
     seats: 25,
     remaining: 15,
-    duration: "6 ชั่วโมง"
+    duration: "6 ชั่วโมง",
+    location: "ห้องสัมมนา A อาคารหลัก",
+    company: "Pro Presenter Inc.",
+    instructor: "คุณเก่ง นำเสนอ"
   }
 ];
 
@@ -125,7 +126,8 @@ const Training = () => {
   // กรองข้อมูลการอบรมตามคำค้นหา
   const filteredTrainings = MOCK_TRAINING_DATA.filter(training =>
     training.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    training.type.toLowerCase().includes(searchTerm.toLowerCase())
+    training.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    training.instructor.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
   // แสดงสถานะเป็นภาษาไทย
@@ -182,7 +184,7 @@ const Training = () => {
                         <div className="flex justify-between items-start">
                           <div>
                             <CardTitle>{training.name}</CardTitle>
-                            <CardDescription className="mt-1">{training.id} - {training.type}</CardDescription>
+                            <CardDescription className="mt-1">{training.id}</CardDescription>
                           </div>
                           <Badge className={getStatusColor(training.status)}>
                             {getStatusText(training.status)}
@@ -207,6 +209,10 @@ const Training = () => {
                             <User className="h-4 w-4 text-gray-500" />
                             <span className="text-sm">{training.instructor}</span>
                           </div>
+                          <div className="flex items-center gap-2 md:col-span-2">
+                            <span className="text-sm text-gray-600">หน่วยงานที่จัด:</span>
+                            <span className="text-sm font-medium">{training.company}</span>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -230,7 +236,9 @@ const Training = () => {
                       <TableHead>รหัสหลักสูตร</TableHead>
                       <TableHead>ชื่อหลักสูตร</TableHead>
                       <TableHead>วันที่</TableHead>
-                      <TableHead>ประเภท</TableHead>
+                      <TableHead>วิทยากร</TableHead>
+                      <TableHead>หน่วยงานที่จัด</TableHead>
+                      <TableHead>สถานที่</TableHead>
                       <TableHead>ระยะเวลา</TableHead>
                       <TableHead>ที่นั่งคงเหลือ</TableHead>
                       <TableHead></TableHead>
@@ -242,11 +250,9 @@ const Training = () => {
                         <TableCell className="font-medium">{course.id}</TableCell>
                         <TableCell>{course.name}</TableCell>
                         <TableCell>{formatThaiDate(course.date)}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="bg-gray-100">
-                            {course.type}
-                          </Badge>
-                        </TableCell>
+                        <TableCell>{course.instructor}</TableCell>
+                        <TableCell>{course.company}</TableCell>
+                        <TableCell>{course.location}</TableCell>
                         <TableCell>{course.duration}</TableCell>
                         <TableCell>
                           <span className={course.remaining < 5 ? "text-amber-600 font-medium" : ""}>
