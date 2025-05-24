@@ -15,6 +15,7 @@ export interface Course {
   date: string;
   capacity: number;
   registered: number;
+  participants?: number;
   duration: string;
   location: string;
   description?: string;
