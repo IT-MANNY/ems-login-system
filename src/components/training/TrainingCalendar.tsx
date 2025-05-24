@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Users, Search, Filter, ArrowDownUp } from "lucide-react";
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Users, Search, Filter, ArrowDownUp, User, Car } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +12,17 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { format } from "date-fns";
+import useTeamAssignment from "@/hooks/useTeamAssignment";
+import MemberSelector from "./MemberSelector";
+import VehicleSelector from "./VehicleSelector";
 
 // ข้อมูลตัวอย่างสำหรับปฏิทินการอบรม
 const MOCK_EVENTS = [
@@ -109,6 +118,8 @@ const TrainingCalendar = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [sortBy, setSortBy] = useState<string | null>(null);
   const [showDetailsId, setShowDetailsId] = useState<string | null>(null);
+  const [teamManagementDialogOpen, setTeamManagementDialogOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
   
   // สร้างวันแรกของเดือน
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -217,6 +228,65 @@ const TrainingCalendar = () => {
   // แสดงรายละเอียดกิจกรรม
   const toggleEventDetails = (eventId: string) => {
     setShowDetailsId(prev => prev === eventId ? null : eventId);
+  };
+  
+  const { 
+    teamMembers,
+    vehicles,
+    assignments,
+    createAssignment,
+    assignMember,
+    removeMember,
+    assignVehicle
+  } = useTeamAssignment();
+  
+  // เปิด dialog สำหรับจัดการทีม
+  const openTeamManagement = (event: any) => {
+    setSelectedEvent(event);
+    setTeamManagementDialogOpen(true);
+  };
+
+  // หาการมอบหมายงานของหลักสูตร
+  const getEventAssignment = (eventId: string, eventDate: string) => {
+    return assignments.find(a => a.courseId === eventId && a.date === eventDate);
+  };
+
+  // จัดการการเพิ่มสมาชิก
+  const handleAddMember = (memberId: string) => {
+    if (selectedEvent) {
+      let assignment = getEventAssignment(selectedEvent.id, selectedEvent.date);
+      if (!assignment) {
+        const assignmentId = createAssignment(selectedEvent.id, selectedEvent.date);
+        assignment = assignments.find(a => a.id === assignmentId);
+      }
+      if (assignment) {
+        assignMember(assignment.id, memberId);
+      }
+    }
+  };
+
+  // จัดการการลบสมาชิก
+  const handleRemoveMember = (memberId: string) => {
+    if (selectedEvent) {
+      const assignment = getEventAssignment(selectedEvent.id, selectedEvent.date);
+      if (assignment) {
+        removeMember(assignment.id, memberId);
+      }
+    }
+  };
+
+  // จัดการการกำหนดรถ
+  const handleAssignVehicle = (vehicleId: string | null) => {
+    if (selectedEvent) {
+      let assignment = getEventAssignment(selectedEvent.id, selectedEvent.date);
+      if (!assignment) {
+        const assignmentId = createAssignment(selectedEvent.id, selectedEvent.date);
+        assignment = assignments.find(a => a.id === assignmentId);
+      }
+      if (assignment) {
+        assignVehicle(assignment.id, vehicleId);
+      }
+    }
   };
   
   return (
@@ -418,50 +488,94 @@ const TrainingCalendar = () => {
                 </span>
               </div>
               <div className="space-y-1">
-                {events.map(event => (
-                  <Card 
-                    key={event.id} 
-                    className={`p-1 cursor-pointer hover:bg-gray-50 ${showDetailsId === event.id ? 'ring-2 ring-blue-500' : ''}`}
-                    onClick={() => toggleEventDetails(event.id)}
-                  >
-                    <CardContent className="p-2">
-                      <div className="text-xs font-medium truncate">{event.title}</div>
-                      <div className="flex items-center justify-between mt-1">
-                        <div className="flex items-center">
-                          <Users className="h-3 w-3 mr-1 text-gray-500" />
-                          <span className="text-xs text-gray-600">{event.teams}</span>
-                        </div>
-                        <Badge 
-                          variant="outline" 
-                          className={`text-xs ${
-                            event.status === 'confirmed' 
-                              ? 'bg-green-50 text-green-800 border-green-200' 
-                              : 'bg-amber-50 text-amber-800 border-amber-200'
-                          }`}
-                        >
-                          {event.status === 'confirmed' ? 'พร้อม' : 'ต้องการทีม'}
-                        </Badge>
-                      </div>
-                      
-                      {/* รายละเอียดเพิ่มเติมเมื่อคลิก */}
-                      {showDetailsId === event.id && (
-                        <div className="mt-2 pt-2 border-t text-xs text-gray-600 space-y-1">
-                          <div className="flex justify-between">
-                            <span>ประเภท:</span>
-                            <span>{event.type}</span>
+                {events.map(event => {
+                  const eventAssignment = getEventAssignment(event.id, event.date);
+                  const assignedMembers = eventAssignment?.members || [];
+                  const assignedVehicle = eventAssignment?.vehicle;
+                  
+                  return (
+                    <Card 
+                      key={event.id} 
+                      className={`p-1 cursor-pointer hover:bg-gray-50 ${showDetailsId === event.id ? 'ring-2 ring-blue-500' : ''}`}
+                      onClick={() => toggleEventDetails(event.id)}
+                    >
+                      <CardContent className="p-2">
+                        <div className="text-xs font-medium truncate">{event.title}</div>
+                        <div className="flex items-center justify-between mt-1">
+                          <div className="flex items-center">
+                            <Users className="h-3 w-3 mr-1 text-gray-500" />
+                            <span className="text-xs text-gray-600">{assignedMembers.length}</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span>จำนวน:</span>
-                            <span>{event.registered}/{event.capacity}</span>
-                          </div>
-                          <Button size="sm" className="w-full mt-1 h-6 text-xs" variant="outline">
-                            จัดการทีม
-                          </Button>
+                          <Badge 
+                            variant="outline" 
+                            className={`text-xs ${
+                              assignedMembers.length > 0
+                                ? 'bg-green-50 text-green-800 border-green-200' 
+                                : 'bg-amber-50 text-amber-800 border-amber-200'
+                            }`}
+                          >
+                            {assignedMembers.length > 0 ? 'มีทีม' : 'ต้องการทีม'}
+                          </Badge>
                         </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
+                        
+                        {/* แสดงทีมงานที่มอบหมาย */}
+                        {assignedMembers.length > 0 && (
+                          <div className="mt-2 space-y-1">
+                            <div className="flex flex-wrap gap-1">
+                              {assignedMembers.slice(0, 2).map(memberId => {
+                                const member = teamMembers.find(m => m.id === memberId);
+                                return member ? (
+                                  <Badge key={member.id} variant="secondary" className="text-xs">
+                                    {member.name.split(' ')[0]}
+                                  </Badge>
+                                ) : null;
+                              })}
+                              {assignedMembers.length > 2 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  +{assignedMembers.length - 2}
+                                </Badge>
+                              )}
+                            </div>
+                            {assignedVehicle && (
+                              <div className="flex items-center">
+                                <Car className="h-3 w-3 mr-1 text-green-600" />
+                                <span className="text-xs text-green-600">
+                                  {vehicles.find(v => v.id === assignedVehicle)?.name}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* รายละเอียดเพิ่มเติมเมื่อคลิก */}
+                        {showDetailsId === event.id && (
+                          <div className="mt-2 pt-2 border-t text-xs text-gray-600 space-y-1">
+                            <div className="flex justify-between">
+                              <span>ประเภท:</span>
+                              <span>{event.type}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>จำนวน:</span>
+                              <span>{event.registered}/{event.capacity}</span>
+                            </div>
+                            <Button 
+                              size="sm" 
+                              className="w-full mt-1 h-6 text-xs" 
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openTeamManagement(event);
+                              }}
+                            >
+                              <Users className="h-3 w-3 mr-1" />
+                              จัดการทีม
+                            </Button>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             </div>
           );
@@ -479,6 +593,58 @@ const TrainingCalendar = () => {
           แสดงผล {filteredEvents.length} รายการ
         </div>
       </div>
+
+      {/* Team Management Dialog */}
+      <Dialog open={teamManagementDialogOpen} onOpenChange={setTeamManagementDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              จัดการทีมงาน - {selectedEvent?.title}
+            </DialogTitle>
+            <div className="text-sm text-gray-500">
+              วันที่: {selectedEvent?.date ? format(new Date(selectedEvent.date), "dd/MM/yyyy") : ""}
+            </div>
+          </DialogHeader>
+          
+          {selectedEvent && (
+            <div className="space-y-6 py-4">
+              {/* Member Selection */}
+              <div>
+                <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  เลือกเจ้าหน้าที่
+                </h3>
+                <MemberSelector
+                  selectedMemberIds={getEventAssignment(selectedEvent.id, selectedEvent.date)?.members || []}
+                  availableMembers={teamMembers}
+                  onAddMember={handleAddMember}
+                  onRemoveMember={handleRemoveMember}
+                />
+              </div>
+
+              {/* Vehicle Selection */}
+              <div>
+                <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+                  <Car className="h-4 w-4" />
+                  เลือกรถ
+                </h3>
+                <VehicleSelector
+                  selectedVehicleId={getEventAssignment(selectedEvent.id, selectedEvent.date)?.vehicle}
+                  availableVehicles={vehicles}
+                  onSelectVehicle={handleAssignVehicle}
+                />
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTeamManagementDialogOpen(false)}>
+              ปิด
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
