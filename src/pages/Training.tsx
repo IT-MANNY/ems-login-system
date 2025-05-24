@@ -1,322 +1,229 @@
 
 import { useState } from "react";
 import Layout from "@/components/Layout";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
-  GraduationCap,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import {
   Calendar,
+  Search,
+  Filter,
+  TrendingUp,
+  Users,
+  Clock,
   MapPin,
   User,
-  Clock,
-  Layers,
+  Car,
+  FileText,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import TrainingHistoryCard from "@/components/training/TrainingHistoryCard";
+import TrainingStats from "@/components/training/TrainingStats";
+import TrainingFilters from "@/components/training/TrainingFilters";
 
-// ข้อมูลจำลองสำหรับการฝึกอบรม
-const MOCK_TRAINING_DATA = [
+// Mock data for team training management history
+const TEAM_TRAINING_HISTORY = [
   {
-    id: "TR001",
-    name: "การพัฒนาทักษะการสื่อสารในองค์กร",
+    id: "TH001",
+    courseId: "C001",
+    courseName: "การพัฒนาทักษะการสื่อสารในองค์กร",
     date: "2025-03-15",
     location: "ห้องประชุมใหญ่ สำนักงานใหญ่",
     company: "Training Excellence Co., Ltd.",
     instructor: "ดร.สมชาย ใจดี",
     duration: "6 ชั่วโมง",
-    status: "completed"
+    participants: 25,
+    capacity: 30,
+    status: "completed",
+    teamMembers: ["สุรชัย มานะ", "วิภาพร ใจดี", "นภาพร วงศ์สกุล"],
+    vehicle: "รถตู้ 1",
+    notes: "งานสำเร็จเรียบร้อย ผู้เข้าร่วมให้ความร่วมมือดี",
+    rating: 4.8,
+    feedback: "ทีมงานประสานงานได้ดีมาก"
   },
   {
-    id: "TR002",
-    name: "การบริหารจัดการเวลาอย่างมีประสิทธิภาพ",
+    id: "TH002", 
+    courseId: "C002",
+    courseName: "การบริหารจัดการเวลาอย่างมีประสิทธิภาพ",
     date: "2025-04-22",
     location: "ห้องอบรม 2 อาคาร B",
     company: "Time Management Institute",
     instructor: "คุณวิภา เวลาทอง",
     duration: "3 ชั่วโมง",
-    status: "completed"
+    participants: 20,
+    capacity: 25,
+    status: "completed",
+    teamMembers: ["วิภาพร ใจดี", "พิไลพร จริยา"],
+    vehicle: "รถเก๋ง 1",
+    notes: "อุปกรณ์เสียงมีปัญหาเล็กน้อยในช่วงแรก",
+    rating: 4.5,
+    feedback: "แก้ไขปัญหาได้รวดเร็ว"
   },
   {
-    id: "TR003",
-    name: "เทคโนโลยีสมัยใหม่กับการทำงาน",
+    id: "TH003",
+    courseId: "C003", 
+    courseName: "เทคโนโลยีสมัยใหม่กับการทำงาน",
     date: "2025-06-10",
     location: "ห้องประชุม Innovation Hub",
-    company: "TechTrain Thailand",
+    company: "TechTrain Thailand", 
     instructor: "คุณสมศักดิ์ เทคโนโลยี",
     duration: "6 ชั่วโมง",
-    status: "upcoming"
+    participants: 18,
+    capacity: 20,
+    status: "upcoming",
+    teamMembers: ["ธนกร พัฒนา", "วีระพงษ์ สุขใจ", "มนัส พากเพียร"],
+    vehicle: "รถตู้ 2",
+    notes: "เตรียมอุปกรณ์โสตทัศนูปกรณ์พิเศษ",
+    rating: null,
+    feedback: null
   },
   {
-    id: "TR004",
-    name: "การวิเคราะห์ข้อมูลสำหรับการตัดสินใจ",
+    id: "TH004",
+    courseId: "C004",
+    courseName: "การวิเคราะห์ข้อมูลสำหรับการตัดสินใจ", 
     date: "2025-07-05",
     location: "ศูนย์อบรมดิจิทัล",
     company: "Data Decision Co., Ltd.",
     instructor: "ดร.วิเคราะห์ ข้อมูลดี",
     duration: "12 ชั่วโมง",
-    status: "upcoming"
+    participants: 10,
+    capacity: 15,
+    status: "upcoming",
+    teamMembers: ["สุรชัย มานะ", "วิภาพร ใจดี", "ธนกร พัฒนา", "นภาพร วงศ์สกุล"],
+    vehicle: "รถตู้ 1",
+    notes: "งานใหญ่ ต้องการทีมงานเยอะ",
+    rating: null,
+    feedback: null
   },
   {
-    id: "TR005",
-    name: "กฎหมายแรงงานที่หัวหน้างานควรรู้",
-    date: "2025-03-30",
+    id: "TH005",
+    courseId: "C005",
+    courseName: "กฎหมายแรงงานที่หัวหน้างานควรรู้",
+    date: "2025-03-30", 
     location: "ห้องกฎหมาย อาคารสำนักงานใหญ่",
     company: "Legal Expert Team",
     instructor: "ทนายวิชัย กฎหมาย",
     duration: "6 ชั่วโมง",
-    status: "completed"
-  }
-];
-
-// ข้อมูลจำลองสำหรับหลักสูตรที่เปิดให้ลงทะเบียน
-const MOCK_AVAILABLE_COURSES = [
-  {
-    id: "CR001",
-    name: "ความปลอดภัยในการทำงาน",
-    date: "2025-06-20",
-    seats: 30,
-    remaining: 12,
-    duration: "3 ชั่วโมง",
-    location: "ห้องประชุมใหญ่ สำนักงานใหญ่",
-    company: "Safety First Co., Ltd.",
-    instructor: "คุณสมหวัง ปลอดภัย"
-  },
-  {
-    id: "CR002",
-    name: "ทักษะการเป็นผู้นำยุคใหม่",
-    date: "2025-06-25",
-    seats: 20,
-    remaining: 5,
-    duration: "6 ชั่วโมง",
-    location: "ห้องอบรมพิเศษ ชั้น 5",
-    company: "Leadership Academy",
-    instructor: "ดร.นำพา ก้าวหน้า"
-  },
-  {
-    id: "CR003",
-    name: "เทคนิคการนำเสนองานอย่างมืออาชีพ",
-    date: "2025-07-15",
-    seats: 25,
-    remaining: 15,
-    duration: "6 ชั่วโมง",
-    location: "ห้องสัมมนา A อาคารหลัก",
-    company: "Pro Presenter Inc.",
-    instructor: "คุณเก่ง นำเสนอ"
+    participants: 35,
+    capacity: 40,
+    status: "completed",
+    teamMembers: ["สุรชัย มานะ", "พิไลพร จริยา", "มนัส พากเพียร"],
+    vehicle: "รถบัส",
+    notes: "ผู้เข้าร่วมเยอะ ต้องใช้รถบัส",
+    rating: 4.9,
+    feedback: "ประสานงานดีเยี่ยม"
   }
 ];
 
 const Training = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [showRegistration, setShowRegistration] = useState(false);
-  
-  // กรองข้อมูลการอบรมตามคำค้นหา
-  const filteredTrainings = MOCK_TRAINING_DATA.filter(training =>
-    training.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    training.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    training.instructor.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  
-  // แสดงสถานะเป็นภาษาไทย
-  const getStatusText = (status: string): string => {
-    return status === "completed" ? "เสร็จสิ้น" : status === "upcoming" ? "กำลังจะมาถึง" : "ไม่ทราบสถานะ";
-  };
-  
-  // แสดงสีของ Badge ตามสถานะ
-  const getStatusColor = (status: string): string => {
-    return status === "completed" ? "bg-green-100 text-green-800" : 
-           status === "upcoming" ? "bg-blue-100 text-blue-800" : 
-           "bg-gray-100 text-gray-800";
-  };
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [monthFilter, setMonthFilter] = useState("all");
+  const [activeTab, setActiveTab] = useState("overview");
 
-  // ฟอแมตวันที่เป็นรูปแบบไทย
-  const formatThaiDate = (dateStr: string): string => {
-    const date = new Date(dateStr);
-    const thaiMonths = [
-      "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", 
-      "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
-    ];
-    return `${date.getDate()} ${thaiMonths[date.getMonth()]} ${date.getFullYear() + 543}`;
-  };
+  // Filter training history
+  const filteredHistory = TEAM_TRAINING_HISTORY.filter(training => {
+    const matchesSearch = training.courseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         training.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         training.instructor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         training.teamMembers.some(member => member.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesStatus = statusFilter === "all" || training.status === statusFilter;
+    
+    const matchesMonth = monthFilter === "all" || 
+                        (monthFilter && training.date.includes(`-${monthFilter}-`));
+    
+    return matchesSearch && matchesStatus && matchesMonth;
+  });
 
   return (
-    <Layout title="ประวัติอบรม">
+    <Layout title="ประวัติการดูแลงานอบรม">
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div className="max-w-md w-full">
-            <Input
-              placeholder="ค้นหาหลักสูตร..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full"
-            />
+        {/* Header Section */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg p-6">
+          <div className="flex items-center gap-3 mb-2">
+            <Users className="h-6 w-6" />
+            <h1 className="text-2xl font-bold">ประวัติการดูแลงานอบรม</h1>
           </div>
-          <Button 
-            onClick={() => setShowRegistration(!showRegistration)}
-            variant={showRegistration ? "secondary" : "default"}
-          >
-            {showRegistration ? "ดูประวัติการอบรม" : "ดูหลักสูตรเปิดรับสมัคร"}
-          </Button>
+          <p className="text-blue-100">
+            ข้อมูลการปฏิบัติงานของทีมดูแลงานอบรม การมอบหมายงาน และผลการดำเนินงาน
+          </p>
         </div>
-        
-        {!showRegistration ? (
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-6">
-              <h2 className="text-lg font-medium mb-4">ประวัติการอบรมของคุณ</h2>
-              {filteredTrainings.length > 0 ? (
-                <div className="space-y-6">
-                  {filteredTrainings.map((training) => (
-                    <Card key={training.id} className="overflow-hidden border-l-4 border-l-blue-500">
-                      <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <CardTitle>{training.name}</CardTitle>
-                            <CardDescription className="mt-1">{training.id}</CardDescription>
-                          </div>
-                          <Badge className={getStatusColor(training.status)}>
-                            {getStatusText(training.status)}
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-gray-500" />
-                            <span className="text-sm">{formatThaiDate(training.date)}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-gray-500" />
-                            <span className="text-sm">{training.duration}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4 text-gray-500" />
-                            <span className="text-sm">{training.location}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <User className="h-4 w-4 text-gray-500" />
-                            <span className="text-sm">{training.instructor}</span>
-                          </div>
-                          <div className="flex items-center gap-2 md:col-span-2">
-                            <span className="text-sm text-gray-600">หน่วยงานที่จัด:</span>
-                            <span className="text-sm font-medium">{training.company}</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+
+        {/* Statistics Overview */}
+        <TrainingStats trainings={TEAM_TRAINING_HISTORY} />
+
+        {/* Filters and Search */}
+        <TrainingFilters
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+          monthFilter={monthFilter}
+          onMonthFilterChange={setMonthFilter}
+        />
+
+        {/* Main Content Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              ภาพรวม
+            </TabsTrigger>
+            <TabsTrigger value="completed" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              งานที่เสร็จแล้ว
+            </TabsTrigger>
+            <TabsTrigger value="upcoming" className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              งานที่กำลังจะมา
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="mt-6">
+            <div className="grid gap-4">
+              {filteredHistory.length > 0 ? (
+                filteredHistory.map((training) => (
+                  <TrainingHistoryCard key={training.id} training={training} />
+                ))
               ) : (
-                <div className="text-center py-12 text-gray-500 italic">
-                  ไม่พบข้อมูลการอบรม
+                <div className="text-center py-12 text-gray-500">
+                  <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <p className="text-lg mb-2">ไม่พบข้อมูลงานอบรม</p>
+                  <p className="text-sm">ลองเปลี่ยนเงื่อนไขการค้นหา</p>
                 </div>
               )}
             </div>
-          </div>
-        ) : (
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-6">
-              <h2 className="text-lg font-medium mb-4">หลักสูตรที่เปิดรับสมัคร</h2>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>รหัสหลักสูตร</TableHead>
-                      <TableHead>ชื่อหลักสูตร</TableHead>
-                      <TableHead>วันที่</TableHead>
-                      <TableHead>วิทยากร</TableHead>
-                      <TableHead>หน่วยงานที่จัด</TableHead>
-                      <TableHead>สถานที่</TableHead>
-                      <TableHead>ระยะเวลา</TableHead>
-                      <TableHead>ที่นั่งคงเหลือ</TableHead>
-                      <TableHead></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {MOCK_AVAILABLE_COURSES.map((course) => (
-                      <TableRow key={course.id}>
-                        <TableCell className="font-medium">{course.id}</TableCell>
-                        <TableCell>{course.name}</TableCell>
-                        <TableCell>{formatThaiDate(course.date)}</TableCell>
-                        <TableCell>{course.instructor}</TableCell>
-                        <TableCell>{course.company}</TableCell>
-                        <TableCell>{course.location}</TableCell>
-                        <TableCell>{course.duration}</TableCell>
-                        <TableCell>
-                          <span className={course.remaining < 5 ? "text-amber-600 font-medium" : ""}>
-                            {course.remaining}/{course.seats}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <Button size="sm">ลงทะเบียน</Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+          </TabsContent>
+
+          <TabsContent value="completed" className="mt-6">
+            <div className="grid gap-4">
+              {filteredHistory.filter(t => t.status === "completed").map((training) => (
+                <TrainingHistoryCard key={training.id} training={training} />
+              ))}
             </div>
-          </div>
-        )}
-        
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <GraduationCap className="h-5 w-5 text-blue-600" />
-            <h2 className="text-lg font-medium">สรุปการเข้าอบรม</h2>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-sm text-blue-700 mb-1">จำนวนชั่วโมงอบรมทั้งหมด</p>
-                  <p className="text-2xl font-semibold text-blue-800">
-                    {MOCK_TRAINING_DATA.filter(t => t.status === "completed").reduce(
-                      (total, training) => total + parseInt(training.duration.split(' ')[0]), 0
-                    )} ชั่วโมง
-                  </p>
-                </div>
-                <Clock className="h-8 w-8 text-blue-400" />
-              </div>
+          </TabsContent>
+
+          <TabsContent value="upcoming" className="mt-6">
+            <div className="grid gap-4">
+              {filteredHistory.filter(t => t.status === "upcoming").map((training) => (
+                <TrainingHistoryCard key={training.id} training={training} />
+              ))}
             </div>
-            
-            <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-sm text-green-700 mb-1">หลักสูตรที่เคยผ่านการอบรม</p>
-                  <p className="text-2xl font-semibold text-green-800">
-                    {MOCK_TRAINING_DATA.filter(t => t.status === "completed").length} หลักสูตร
-                  </p>
-                </div>
-                <Layers className="h-8 w-8 text-green-400" />
-              </div>
-            </div>
-            
-            <div className="bg-purple-50 p-4 rounded-lg border border-purple-100">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-sm text-purple-700 mb-1">หลักสูตรที่มีแผนจะอบรม</p>
-                  <p className="text-2xl font-semibold text-purple-800">
-                    {MOCK_TRAINING_DATA.filter(t => t.status === "upcoming").length} หลักสูตร
-                  </p>
-                </div>
-                <Calendar className="h-8 w-8 text-purple-400" />
-              </div>
-            </div>
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </Layout>
   );
