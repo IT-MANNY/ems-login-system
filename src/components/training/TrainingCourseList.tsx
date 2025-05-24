@@ -192,7 +192,7 @@ const TrainingCourseList = () => {
   const [company, setCompany] = useState("");
   const [instructor, setInstructor] = useState("");
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
-  const [selectedVehicle, setSelectedVehicle] = useState<string>("");
+  const [selectedVehicle, setSelectedVehicle] = useState<string>("none");
 
   // กรองหลักสูตรตามคำค้นหาและประเภท
   const filteredCourses = MOCK_COURSES
@@ -333,7 +333,7 @@ const TrainingCourseList = () => {
     setCompany("");
     setInstructor("");
     setSelectedMembers([]);
-    setSelectedVehicle("");
+    setSelectedVehicle("none");
   };
 
   return (
@@ -520,7 +520,7 @@ const TrainingCourseList = () => {
                         <SelectValue placeholder="เลือกยานพาหนะ (ถ้าต้องการ)" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">-- ไม่ต้องการรถ --</SelectItem>
+                        <SelectItem value="none">-- ไม่ต้องการรถ --</SelectItem>
                         {MOCK_VEHICLES.map(vehicle => (
                           <SelectItem key={vehicle.id} value={vehicle.id}>
                             {vehicle.name} ({vehicle.type})
