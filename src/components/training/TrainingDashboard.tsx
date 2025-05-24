@@ -35,7 +35,24 @@ interface TrainingDashboardProps {
   onStatusFilterChange: (value: string) => void;
   monthFilter: string;
   onMonthFilterChange: (value: string) => void;
-  filteredHistory: typeof trainings;
+  filteredHistory: Array<{
+    id: string;
+    courseId: string;
+    courseName: string;
+    date: string;
+    location: string;
+    company: string;
+    instructor: string;
+    duration: string;
+    participants: number;
+    capacity: number;
+    status: string;
+    teamMembers: string[];
+    vehicle?: string;
+    notes?: string;
+    rating?: number;
+    feedback?: string;
+  }>;
 }
 
 const TrainingDashboard = ({
