@@ -2,36 +2,9 @@
 import { useState } from "react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import {
-  Calendar,
-  Search,
-  Filter,
-  TrendingUp,
-  Users,
-  Clock,
-  MapPin,
-  User,
-  Car,
-  FileText,
-} from "lucide-react";
-import TrainingHistoryCard from "@/components/training/TrainingHistoryCard";
-import TrainingStats from "@/components/training/TrainingStats";
-import TrainingFilters from "@/components/training/TrainingFilters";
+import { Users, Plus, Settings, BarChart3 } from "lucide-react";
+import TrainingDashboard from "@/components/training/TrainingDashboard";
+import { useNavigate } from "react-router-dom";
 
 // Mock data for team training management history
 const TEAM_TRAINING_HISTORY = [
@@ -131,7 +104,7 @@ const Training = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [monthFilter, setMonthFilter] = useState("all");
-  const [activeTab, setActiveTab] = useState("overview");
+  const navigate = useNavigate();
 
   // Filter training history
   const filteredHistory = TEAM_TRAINING_HISTORY.filter(training => {
@@ -151,79 +124,51 @@ const Training = () => {
   return (
     <Layout title="ประวัติการดูแลงานอบรม">
       <div className="space-y-6">
-        {/* Header Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <Users className="h-6 w-6" />
-            <h1 className="text-2xl font-bold">ประวัติการดูแลงานอบรม</h1>
+        {/* Enhanced Header Section */}
+        <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 text-white rounded-xl p-8 shadow-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="bg-white/20 p-3 rounded-lg">
+                <Users className="h-8 w-8" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold mb-2">ระบบจัดการงานอบรม</h1>
+                <p className="text-blue-100 text-lg">
+                  จัดการทีมงาน วางแผนการอบรม และติดตามผลการดำเนินงานแบบครบวงจร
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button 
+                variant="outline" 
+                className="border-white/30 text-white hover:bg-white/10"
+                onClick={() => navigate('/manage-trainings')}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                จัดการระบบ
+              </Button>
+              <Button 
+                className="bg-white text-blue-700 hover:bg-blue-50"
+                onClick={() => navigate('/manage-trainings')}
+              >
+                <BarChart3 className="h-4 w-4 mr-2" />
+                วางแผนงาน
+              </Button>
+            </div>
           </div>
-          <p className="text-blue-100">
-            ข้อมูลการปฏิบัติงานของทีมดูแลงานอบรม การมอบหมายงาน และผลการดำเนินงาน
-          </p>
         </div>
 
-        {/* Statistics Overview */}
-        <TrainingStats trainings={TEAM_TRAINING_HISTORY} />
-
-        {/* Filters and Search */}
-        <TrainingFilters
+        {/* Main Dashboard */}
+        <TrainingDashboard
+          trainings={TEAM_TRAINING_HISTORY}
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
           statusFilter={statusFilter}
           onStatusFilterChange={setStatusFilter}
           monthFilter={monthFilter}
           onMonthFilterChange={setMonthFilter}
+          filteredHistory={filteredHistory}
         />
-
-        {/* Main Content Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              ภาพรวม
-            </TabsTrigger>
-            <TabsTrigger value="completed" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              งานที่เสร็จแล้ว
-            </TabsTrigger>
-            <TabsTrigger value="upcoming" className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              งานที่กำลังจะมา
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="mt-6">
-            <div className="grid gap-4">
-              {filteredHistory.length > 0 ? (
-                filteredHistory.map((training) => (
-                  <TrainingHistoryCard key={training.id} training={training} />
-                ))
-              ) : (
-                <div className="text-center py-12 text-gray-500">
-                  <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p className="text-lg mb-2">ไม่พบข้อมูลงานอบรม</p>
-                  <p className="text-sm">ลองเปลี่ยนเงื่อนไขการค้นหา</p>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="completed" className="mt-6">
-            <div className="grid gap-4">
-              {filteredHistory.filter(t => t.status === "completed").map((training) => (
-                <TrainingHistoryCard key={training.id} training={training} />
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="upcoming" className="mt-6">
-            <div className="grid gap-4">
-              {filteredHistory.filter(t => t.status === "upcoming").map((training) => (
-                <TrainingHistoryCard key={training.id} training={training} />
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
       </div>
     </Layout>
   );
