@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { Calendar, Users, Car, FileText, Search } from "lucide-react";
+import { Calendar, Users, Car, FileText, Search, BarChart3 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -23,6 +22,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -39,6 +44,7 @@ import { Textarea } from "@/components/ui/textarea";
 import useTeamAssignment from "@/hooks/useTeamAssignment";
 import MemberSelector from "./MemberSelector";
 import VehicleSelector from "./VehicleSelector";
+import TeamWorkloadOverview from "./TeamWorkloadOverview";
 
 const TrainingTeamPlanner = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -46,6 +52,7 @@ const TrainingTeamPlanner = () => {
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [currentAssignmentId, setCurrentAssignmentId] = useState<string>("");
   const [noteText, setNoteText] = useState("");
+  const [activeView, setActiveView] = useState("overview");
   
   const { 
     courses, 
@@ -108,6 +115,18 @@ const TrainingTeamPlanner = () => {
     }
   };
 
+  const formatThaiDate = (dateStr: string): string => {
+    const [year, month, day] = dateStr.split("-");
+    const thaiMonths = [
+      "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", 
+      "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
+    ];
+    const thaiMonth = thaiMonths[parseInt(month) - 1];
+    const thaiYear = parseInt(year) + 543;
+    
+    return `${parseInt(day)} ${thaiMonth} ${thaiYear}`;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-4">
@@ -134,197 +153,224 @@ const TrainingTeamPlanner = () => {
           />
         </div>
       </div>
-      
-      <Card className="flex-1">
-        <CardHeader className="px-6 py-4">
-          <CardTitle className="text-lg">
-            หลักสูตรที่กำลังจะมาในเดือนนี้ ({filteredCourses.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-6">
-          <div className="overflow-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[120px]">วันที่</TableHead>
-                  <TableHead className="w-[220px]">หลักสูตร</TableHead>
-                  <TableHead>ประเภท</TableHead>
-                  <TableHead>วิทยากร</TableHead>
-                  <TableHead>บริษัท</TableHead>
-                  <TableHead>สถานที่</TableHead>
-                  <TableHead className="text-center">จำนวน</TableHead>
-                  <TableHead className="min-w-[300px]">เจ้าหน้าที่ที่ดูแล</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredCourses.length > 0 ? (
-                  filteredCourses.map((course) => {
-                    // หาการมอบหมายงานของหลักสูตรนี้
-                    const courseAssignment = assignments.find(
-                      a => a.courseId === course.id && a.date === course.date
-                    );
-                    
-                    return (
-                      <TableRow key={`${course.id}-${course.date}`}>
-                        <TableCell className="whitespace-nowrap">
-                          {formatThaiDate(course.date)}
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">{course.name}</div>
-                            <div className="text-xs text-gray-500">{course.id}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="font-normal">{course.type}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          {course.instructor || "-"}
-                        </TableCell>
-                        <TableCell>
-                          {course.company || "-"}
-                        </TableCell>
-                        <TableCell>
-                          {course.location || "-"}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {course.registered}/{course.capacity}
-                        </TableCell>
-                        <TableCell>
-                          {courseAssignment ? (
-                            <ResizablePanelGroup direction="horizontal" className="min-h-[80px]">
-                              <ResizablePanel defaultSize={75}>
-                                <div className="p-2 bg-gray-50 rounded-md shadow-sm h-full">
-                                  <div className="flex flex-wrap gap-2">
-                                    {courseAssignment.members.length > 0 ? 
-                                      courseAssignment.members.map(memberId => {
-                                        const member = teamMembers.find(m => m.id === memberId);
-                                        return member ? (
-                                          <Badge 
-                                            key={member.id} 
-                                            className="bg-blue-100 hover:bg-blue-200 text-blue-800 border-blue-200"
-                                          >
-                                            {member.name}
+
+      <Tabs value={activeView} onValueChange={setActiveView} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            ภาพรวมทีมงาน
+          </TabsTrigger>
+          <TabsTrigger value="detailed" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            จัดการรายละเอียด
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="mt-6">
+          <TeamWorkloadOverview
+            teamMembers={teamMembers}
+            courses={courses}
+            assignments={assignments}
+            onAssignMember={(courseId, date, memberId) => {
+              const assignmentId = createAssignment(courseId, date);
+              assignMember(assignmentId, memberId);
+            }}
+          />
+        </TabsContent>
+
+        <TabsContent value="detailed" className="mt-6">
+          <Card className="flex-1">
+            <CardHeader className="px-6 py-4">
+              <CardTitle className="text-lg">
+                หลักสูตรที่กำลังจะมาในเดือนนี้ ({filteredCourses.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-6">
+              <div className="overflow-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[120px]">วันที่</TableHead>
+                      <TableHead className="w-[220px]">หลักสูตร</TableHead>
+                      <TableHead>ประเภท</TableHead>
+                      <TableHead>วิทยากร</TableHead>
+                      <TableHead>บริษัท</TableHead>
+                      <TableHead>สถานที่</TableHead>
+                      <TableHead className="text-center">จำนวน</TableHead>
+                      <TableHead className="min-w-[300px]">เจ้าหน้าที่ที่ดูแล</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredCourses.length > 0 ? (
+                      filteredCourses.map((course) => {
+                        // หาการมอบหมายงานของหลักสูตรนี้
+                        const courseAssignment = assignments.find(
+                          a => a.courseId === course.id && a.date === course.date
+                        );
+                        
+                        return (
+                          <TableRow key={`${course.id}-${course.date}`}>
+                            <TableCell className="whitespace-nowrap">
+                              {formatThaiDate(course.date)}
+                            </TableCell>
+                            <TableCell>
+                              <div>
+                                <div className="font-medium">{course.name}</div>
+                                <div className="text-xs text-gray-500">{course.id}</div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="font-normal">{course.type}</Badge>
+                            </TableCell>
+                            <TableCell>
+                              {course.instructor || "-"}
+                            </TableCell>
+                            <TableCell>
+                              {course.company || "-"}
+                            </TableCell>
+                            <TableCell>
+                              {course.location || "-"}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {course.registered}/{course.capacity}
+                            </TableCell>
+                            <TableCell>
+                              {courseAssignment ? (
+                                <ResizablePanelGroup direction="horizontal" className="min-h-[80px]">
+                                  <ResizablePanel defaultSize={75}>
+                                    <div className="p-2 bg-gray-50 rounded-md shadow-sm h-full">
+                                      <div className="flex flex-wrap gap-2">
+                                        {courseAssignment.members.length > 0 ? 
+                                          courseAssignment.members.map(memberId => {
+                                            const member = teamMembers.find(m => m.id === memberId);
+                                            return member ? (
+                                              <Badge 
+                                                key={member.id} 
+                                                className="bg-blue-100 hover:bg-blue-200 text-blue-800 border-blue-200"
+                                              >
+                                                {member.name}
+                                              </Badge>
+                                            ) : null;
+                                          }) : (
+                                            <p className="text-sm text-gray-500 italic">ยังไม่มีเจ้าหน้าที่ที่ถูกมอบหมาย</p>
+                                          )}
+                                      </div>
+                                      
+                                      {courseAssignment.vehicle && (
+                                        <div className="mt-2">
+                                          <Badge className="bg-green-100 hover:bg-green-200 text-green-800 border-green-200">
+                                            <Car className="h-3 w-3 mr-1" />
+                                            {vehicles.find(v => v.id === courseAssignment.vehicle)?.name || 'รถ'}
                                           </Badge>
-                                        ) : null;
-                                      }) : (
-                                        <p className="text-sm text-gray-500 italic">ยังไม่มีเจ้าหน้าที่ที่ถูกมอบหมาย</p>
+                                        </div>
                                       )}
-                                  </div>
-                                  
-                                  {courseAssignment.vehicle && (
-                                    <div className="mt-2">
-                                      <Badge className="bg-green-100 hover:bg-green-200 text-green-800 border-green-200">
-                                        <Car className="h-3 w-3 mr-1" />
-                                        {vehicles.find(v => v.id === courseAssignment.vehicle)?.name || 'รถ'}
-                                      </Badge>
+                                      
+                                      {courseAssignment.notes && (
+                                        <div className="mt-2 text-xs text-gray-600 italic bg-yellow-50 p-1 rounded">
+                                          {courseAssignment.notes}
+                                        </div>
+                                      )}
                                     </div>
-                                  )}
+                                  </ResizablePanel>
                                   
-                                  {courseAssignment.notes && (
-                                    <div className="mt-2 text-xs text-gray-600 italic bg-yellow-50 p-1 rounded">
-                                      {courseAssignment.notes}
-                                    </div>
-                                  )}
-                                </div>
-                              </ResizablePanel>
-                              
-                              <ResizablePanel defaultSize={25}>
-                                <div className="p-2 bg-gray-50 rounded-md shadow-sm flex flex-col h-full gap-1">
-                                  <Popover>
-                                    <PopoverTrigger asChild>
+                                  <ResizablePanel defaultSize={25}>
+                                    <div className="p-2 bg-gray-50 rounded-md shadow-sm flex flex-col h-full gap-1">
+                                      <Popover>
+                                        <PopoverTrigger asChild>
+                                          <Button 
+                                            variant="outline" 
+                                            size="sm" 
+                                            className="w-full justify-start"
+                                          >
+                                            <Users className="h-3.5 w-3.5 mr-1" />
+                                            จัดการเจ้าหน้าที่
+                                          </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-72" align="end">
+                                          <MemberSelector
+                                            selectedMemberIds={courseAssignment.members}
+                                            availableMembers={teamMembers}
+                                            onAddMember={(memberId) => handleAddMember(courseAssignment.id, memberId)}
+                                            onRemoveMember={(memberId) => handleRemoveMember(courseAssignment.id, memberId)}
+                                          />
+                                        </PopoverContent>
+                                      </Popover>
+                                      
+                                      <Popover>
+                                        <PopoverTrigger asChild>
+                                          <Button 
+                                            variant="outline" 
+                                            size="sm" 
+                                            className="w-full justify-start"
+                                          >
+                                            <Car className="h-3.5 w-3.5 mr-1" />
+                                            จัดการรถ
+                                          </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-72" align="end">
+                                          <VehicleSelector
+                                            selectedVehicleId={courseAssignment.vehicle}
+                                            availableVehicles={vehicles}
+                                            onSelectVehicle={(vehicleId) => handleAssignVehicle(courseAssignment.id, vehicleId)}
+                                          />
+                                        </PopoverContent>
+                                      </Popover>
+                                      
                                       <Button 
                                         variant="outline" 
                                         size="sm" 
                                         className="w-full justify-start"
+                                        onClick={() => handleOpenNotesDialog(courseAssignment.id)}
                                       >
-                                        <Users className="h-3.5 w-3.5 mr-1" />
-                                        จัดการเจ้าหน้าที่
+                                        <FileText className="h-3.5 w-3.5 mr-1" />
+                                        บันทึกเพิ่มเติม
                                       </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-72" align="end">
-                                      <MemberSelector
-                                        selectedMemberIds={courseAssignment.members}
-                                        availableMembers={teamMembers}
-                                        onAddMember={(memberId) => handleAddMember(courseAssignment.id, memberId)}
-                                        onRemoveMember={(memberId) => handleRemoveMember(courseAssignment.id, memberId)}
-                                      />
-                                    </PopoverContent>
-                                  </Popover>
-                                  
-                                  <Popover>
-                                    <PopoverTrigger asChild>
+                                      
                                       <Button 
-                                        variant="outline" 
+                                        variant="ghost" 
                                         size="sm" 
-                                        className="w-full justify-start"
+                                        className="w-full justify-start text-red-500 hover:text-red-700 hover:bg-red-50 mt-auto"
+                                        onClick={() => removeAssignment(courseAssignment.id)}
                                       >
-                                        <Car className="h-3.5 w-3.5 mr-1" />
-                                        จัดการรถ
+                                        ลบการมอบหมายงาน
                                       </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-72" align="end">
-                                      <VehicleSelector
-                                        selectedVehicleId={courseAssignment.vehicle}
-                                        availableVehicles={vehicles}
-                                        onSelectVehicle={(vehicleId) => handleAssignVehicle(courseAssignment.id, vehicleId)}
-                                      />
-                                    </PopoverContent>
-                                  </Popover>
-                                  
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    className="w-full justify-start"
-                                    onClick={() => handleOpenNotesDialog(courseAssignment.id)}
+                                    </div>
+                                  </ResizablePanel>
+                                </ResizablePanelGroup>
+                              ) : (
+                                <div className="flex justify-between items-center">
+                                  <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">
+                                    ยังไม่มีเจ้าหน้าที่ดูแล
+                                  </Badge>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="ml-4"
+                                    onClick={() => createAssignment(course.id, course.date)}
                                   >
-                                    <FileText className="h-3.5 w-3.5 mr-1" />
-                                    บันทึกเพิ่มเติม
-                                  </Button>
-                                  
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="w-full justify-start text-red-500 hover:text-red-700 hover:bg-red-50 mt-auto"
-                                    onClick={() => removeAssignment(courseAssignment.id)}
-                                  >
-                                    ลบการมอบหมายงาน
+                                    <Users className="h-3.5 w-3.5 mr-1" />
+                                    เพิ่มเจ้าหน้าที่
                                   </Button>
                                 </div>
-                              </ResizablePanel>
-                            </ResizablePanelGroup>
-                          ) : (
-                            <div className="flex justify-between items-center">
-                              <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">
-                                ยังไม่มีเจ้าหน้าที่ดูแล
-                              </Badge>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="ml-4"
-                                onClick={() => createAssignment(course.id, course.date)}
-                              >
-                                <Users className="h-3.5 w-3.5 mr-1" />
-                                เพิ่มเจ้าหน้าที่
-                              </Button>
-                            </div>
-                          )}
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={8} className="text-center py-10 text-gray-500">
+                          ไม่พบข้อมูลหลักสูตรในเดือนนี้
                         </TableCell>
                       </TableRow>
-                    );
-                  })
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-10 text-gray-500">
-                      ไม่พบข้อมูลหลักสูตรในเดือนนี้
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
       
       {/* Dialog สำหรับจัดการโน้ต */}
       <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
