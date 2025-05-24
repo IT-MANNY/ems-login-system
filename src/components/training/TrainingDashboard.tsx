@@ -1,14 +1,17 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { BarChart3, Calendar, Users, Settings, Filter, Plus } from "lucide-react";
+import { BarChart3, Calendar, Users, Settings, Filter, Plus, Car, Bell } from "lucide-react";
 import TrainingStats from "./TrainingStats";
 import TrainingFilters from "./TrainingFilters";
 import QuickAssignmentPanel from "./QuickAssignmentPanel";
 import TeamWorkloadSummary from "./TeamWorkloadSummary";
 import TrainingHistoryCard from "./TrainingHistoryCard";
+import TrainingNotifications from "./TrainingNotifications";
+import TrainingAnalytics from "./TrainingAnalytics";
+import TrainingScheduleConflicts from "./TrainingScheduleConflicts";
+import TrainingResourceManager from "./TrainingResourceManager";
 
 interface TrainingDashboardProps {
   trainings: Array<{
@@ -92,7 +95,7 @@ const TrainingDashboard = ({
 
       {/* Main Dashboard */}
       <Tabs value={activeView} onValueChange={setActiveView} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="dashboard" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             ภาพรวม
@@ -109,11 +112,19 @@ const TrainingDashboard = ({
             <Settings className="h-4 w-4" />
             วิเคราะห์
           </TabsTrigger>
+          <TabsTrigger value="resources" className="flex items-center gap-2">
+            <Car className="h-4 w-4" />
+            ทรัพยากร
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className="flex items-center gap-2">
+            <Bell className="h-4 w-4" />
+            แจ้งเตือน
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard" className="mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="lg:col-span-3 space-y-6">
               <TrainingStats trainings={trainings} />
               
               <Card>
@@ -141,8 +152,9 @@ const TrainingDashboard = ({
               </Card>
             </div>
             
-            <div>
+            <div className="space-y-6">
               <QuickAssignmentPanel />
+              <TrainingScheduleConflicts />
             </div>
           </div>
         </TabsContent>
@@ -179,29 +191,15 @@ const TrainingDashboard = ({
         </TabsContent>
 
         <TabsContent value="analytics" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>แนวโน้มการอบรม</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64 flex items-center justify-center text-gray-500">
-                  กราฟแสดงแนวโน้มการอบรม
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>ประสิทธิภาพทีม</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64 flex items-center justify-center text-gray-500">
-                  กราฟแสดงประสิทธิภาพทีม
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <TrainingAnalytics trainings={trainings} />
+        </TabsContent>
+
+        <TabsContent value="resources" className="mt-6">
+          <TrainingResourceManager />
+        </TabsContent>
+
+        <TabsContent value="notifications" className="mt-6">
+          <TrainingNotifications />
         </TabsContent>
       </Tabs>
     </div>
