@@ -1,8 +1,10 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { BarChart3, Calendar, Users, Settings, Filter, Plus, Car, Bell } from "lucide-react";
+import { BarChart3, Calendar, Users, Settings, Filter, Plus, Car, Bell, Shield } from "lucide-react";
+import { useUser } from "@/contexts/UserContext";
 import TrainingStats from "./TrainingStats";
 import TrainingFilters from "./TrainingFilters";
 import QuickAssignmentPanel from "./QuickAssignmentPanel";
@@ -69,6 +71,10 @@ const TrainingDashboard = ({
   filteredHistory
 }: TrainingDashboardProps) => {
   const [activeView, setActiveView] = useState("dashboard");
+  const { hasRole } = useUser();
+  
+  // เฉพาะผู้จัดการขึ้นไปเท่านั้นที่สามารถจัดทีมได้
+  const canManageTeam = hasRole(['manager', 'admin']);
 
   return (
     <div className="space-y-6">
@@ -83,15 +89,32 @@ const TrainingDashboard = ({
             <Filter className="h-4 w-4 mr-2" />
             ตัวกรองขั้นสูง
           </Button>
-          <Button size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            เพิ่มงานอบรม
-          </Button>
+          {canManageTeam && (
+            <Button size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              เพิ่มงานอบรม
+            </Button>
+          )}
         </div>
       </div>
 
       {/* Key Metrics */}
       <TeamWorkloadSummary />
+
+      {/* Permission Notice for Non-Managers */}
+      {!canManageTeam && (
+        <Card className="bg-amber-50 border-amber-200">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-amber-800">
+              <Shield className="h-5 w-5" />
+              <p className="font-medium">การจัดทีมงานเฉพาะผู้จัดการขึ้นไป</p>
+            </div>
+            <p className="text-sm text-amber-700 mt-1">
+              คุณสามารถดูข้อมูลการอบรมและประวัติได้ แต่ไม่สามารถจัดการทีมงานได้
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Main Dashboard */}
       <Tabs value={activeView} onValueChange={setActiveView} className="w-full">
@@ -100,10 +123,12 @@ const TrainingDashboard = ({
             <BarChart3 className="h-4 w-4" />
             ภาพรวม
           </TabsTrigger>
-          <TabsTrigger value="quick-assign" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            จัดทีมด่วน
-          </TabsTrigger>
+          {canManageTeam && (
+            <TabsTrigger value="quick-assign" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              จัดทีมด่วน
+            </TabsTrigger>
+          )}
           <TabsTrigger value="history" className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             ประวัติงาน
@@ -112,10 +137,12 @@ const TrainingDashboard = ({
             <Settings className="h-4 w-4" />
             วิเคราะห์
           </TabsTrigger>
-          <TabsTrigger value="resources" className="flex items-center gap-2">
-            <Car className="h-4 w-4" />
-            ทรัพยากร
-          </TabsTrigger>
+          {canManageTeam && (
+            <TabsTrigger value="resources" className="flex items-center gap-2">
+              <Car className="h-4 w-4" />
+              ทรัพยากร
+            </TabsTrigger>
+          )}
           <TabsTrigger value="notifications" className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
             แจ้งเตือน
@@ -153,15 +180,17 @@ const TrainingDashboard = ({
             </div>
             
             <div className="space-y-6">
-              <QuickAssignmentPanel />
+              {canManageTeam && <QuickAssignmentPanel />}
               <TrainingScheduleConflicts />
             </div>
           </div>
         </TabsContent>
 
-        <TabsContent value="quick-assign" className="mt-6">
-          <QuickAssignmentPanel />
-        </TabsContent>
+        {canManageTeam && (
+          <TabsContent value="quick-assign" className="mt-6">
+            <QuickAssignmentPanel />
+          </TabsContent>
+        )}
 
         <TabsContent value="history" className="mt-6">
           <div className="space-y-6">
@@ -194,9 +223,11 @@ const TrainingDashboard = ({
           <TrainingAnalytics trainings={trainings} />
         </TabsContent>
 
-        <TabsContent value="resources" className="mt-6">
-          <TrainingResourceManager />
-        </TabsContent>
+        {canManageTeam && (
+          <TabsContent value="resources" className="mt-6">
+            <TrainingResourceManager />
+          </TabsContent>
+        )}
 
         <TabsContent value="notifications" className="mt-6">
           <TrainingNotifications />
