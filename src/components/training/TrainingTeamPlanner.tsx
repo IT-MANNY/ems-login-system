@@ -15,6 +15,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { useUser } from "@/contexts/UserContext";
 import useTeamAssignment from "@/hooks/useTeamAssignment";
 import TeamWorkloadOverview from "./TeamWorkloadOverview";

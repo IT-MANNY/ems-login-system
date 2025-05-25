@@ -3,6 +3,7 @@ import { useState } from "react";
 import Layout from "@/components/Layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Calendar, Users, ClipboardList, Shield } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import TrainingCalendar from "@/components/training/TrainingCalendar";
