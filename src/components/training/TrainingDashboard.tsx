@@ -1,19 +1,10 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { BarChart3, Calendar, Users, Settings, Filter, Plus, Car, Bell, Shield } from "lucide-react";
+import { BarChart3, Users, Settings, Shield } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
-import TrainingStats from "./TrainingStats";
-import TrainingFilters from "./TrainingFilters";
-import QuickAssignmentPanel from "./QuickAssignmentPanel";
-import TeamWorkloadSummary from "./TeamWorkloadSummary";
 import TrainingHistoryCard from "./TrainingHistoryCard";
-import TrainingNotifications from "./TrainingNotifications";
-import TrainingAnalytics from "./TrainingAnalytics";
-import TrainingScheduleConflicts from "./TrainingScheduleConflicts";
-import TrainingResourceManager from "./TrainingResourceManager";
 
 interface TrainingDashboardProps {
   trainings: Array<{
@@ -61,178 +52,123 @@ interface TrainingDashboardProps {
 }
 
 const TrainingDashboard = ({
-  trainings,
-  searchTerm,
-  onSearchChange,
-  statusFilter,
-  onStatusFilterChange,
-  monthFilter,
-  onMonthFilterChange,
   filteredHistory
 }: TrainingDashboardProps) => {
-  const [activeView, setActiveView] = useState("dashboard");
   const { hasRole } = useUser();
   
-  // เฉพาะผู้จัดการขึ้นไปเท่านั้นที่สามารถจัดทีมได้
   const canManageTeam = hasRole(['manager', 'admin']);
+
+  // Simple stats
+  const completedCount = filteredHistory.filter(t => t.status === "completed").length;
+  const upcomingCount = filteredHistory.filter(t => t.status === "upcoming").length;
 
   return (
     <div className="space-y-6">
-      {/* Header with Quick Actions */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800">ภาพรวมการอบรม</h2>
-          <p className="text-gray-600">จัดการและติดตามงานอบรมของทีม</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Filter className="h-4 w-4 mr-2" />
-            ตัวกรองขั้นสูง
-          </Button>
-          {canManageTeam && (
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              เพิ่มงานอบรม
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Key Metrics */}
-      <TeamWorkloadSummary />
-
       {/* Permission Notice for Non-Managers */}
       {!canManageTeam && (
         <Card className="bg-amber-50 border-amber-200">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-amber-800">
               <Shield className="h-5 w-5" />
-              <p className="font-medium">การจัดทีมงานเฉพาะผู้จัดการขึ้นไป</p>
+              <p className="font-medium">สำหรับดูประวัติงานส่วนตัว</p>
             </div>
             <p className="text-sm text-amber-700 mt-1">
-              คุณสามารถดูข้อมูลการอบรมและประวัติได้ แต่ไม่สามารถจัดการทีมงานได้
+              คุณสามารถดูประวัติงานอบรมของตัวเองได้ การจัดการระบบเฉพาะผู้จัดการ
             </p>
           </CardContent>
         </Card>
       )}
 
-      {/* Main Dashboard */}
-      <Tabs value={activeView} onValueChange={setActiveView} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="dashboard" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            ภาพรวม
-          </TabsTrigger>
-          {canManageTeam && (
-            <TabsTrigger value="quick-assign" className="flex items-center gap-2">
+      {/* Quick Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="bg-green-50 border-green-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-green-800 flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              งานที่เสร็จสิ้น
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-900">{completedCount}</div>
+            <p className="text-xs text-green-600">หลักสูตร</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-blue-50 border-blue-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-blue-800 flex items-center gap-2">
               <Users className="h-4 w-4" />
-              จัดทีมด่วน
-            </TabsTrigger>
-          )}
-          <TabsTrigger value="history" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            ประวัติงาน
-          </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            วิเคราะห์
-          </TabsTrigger>
-          {canManageTeam && (
-            <TabsTrigger value="resources" className="flex items-center gap-2">
-              <Car className="h-4 w-4" />
-              ทรัพยากร
-            </TabsTrigger>
-          )}
-          <TabsTrigger value="notifications" className="flex items-center gap-2">
-            <Bell className="h-4 w-4" />
-            แจ้งเตือน
-          </TabsTrigger>
-        </TabsList>
+              งานที่กำลังจะมา
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-900">{upcomingCount}</div>
+            <p className="text-xs text-blue-600">หลักสูตร</p>
+          </CardContent>
+        </Card>
+      </div>
 
-        <TabsContent value="dashboard" className="mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div className="lg:col-span-3 space-y-6">
-              <TrainingStats trainings={trainings} />
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>งานล่าสุด</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {filteredHistory.slice(0, 3).map((training) => (
-                      <div key={training.id} className="border rounded-lg p-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="font-medium">{training.courseName}</h4>
-                            <p className="text-sm text-gray-500">{training.date}</p>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-sm font-medium">{training.teamMembers.length} คน</div>
-                            <div className="text-xs text-gray-500">ทีมงาน</div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+      {/* Recent Work */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>งานล่าสุด</span>
+            {canManageTeam && (
+              <Button variant="outline" size="sm">
+                <Settings className="h-4 w-4 mr-2" />
+                จัดการระบบ
+              </Button>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {filteredHistory.slice(0, 3).map((training) => (
+              <div key={training.id} className="border rounded-lg p-4">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-900">{training.courseName}</h4>
+                    <p className="text-sm text-gray-500 mt-1">{training.date} • {training.company}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        training.status === 'completed' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {training.status === 'completed' ? 'เสร็จสิ้น' : 'กำลังจะมา'}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        ทีม {training.teamMembers.length} คน
+                      </span>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-            
-            <div className="space-y-6">
-              {canManageTeam && <QuickAssignmentPanel />}
-              <TrainingScheduleConflicts />
-            </div>
-          </div>
-        </TabsContent>
-
-        {canManageTeam && (
-          <TabsContent value="quick-assign" className="mt-6">
-            <QuickAssignmentPanel />
-          </TabsContent>
-        )}
-
-        <TabsContent value="history" className="mt-6">
-          <div className="space-y-6">
-            <TrainingFilters
-              searchTerm={searchTerm}
-              onSearchChange={onSearchChange}
-              statusFilter={statusFilter}
-              onStatusFilterChange={onStatusFilterChange}
-              monthFilter={monthFilter}
-              onMonthFilterChange={onMonthFilterChange}
-            />
-            
-            <div className="grid gap-4">
-              {filteredHistory.length > 0 ? (
-                filteredHistory.map((training) => (
-                  <TrainingHistoryCard key={training.id} training={training} />
-                ))
-              ) : (
-                <div className="text-center py-12 text-gray-500">
-                  <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p className="text-lg mb-2">ไม่พบข้อมูลงานอบรม</p>
-                  <p className="text-sm">ลองเปลี่ยนเงื่อนไขการค้นหา</p>
+                  {training.rating && (
+                    <div className="text-right">
+                      <div className="text-sm font-medium text-yellow-600">⭐ {training.rating}</div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
+            ))}
           </div>
-        </TabsContent>
+        </CardContent>
+      </Card>
 
-        <TabsContent value="analytics" className="mt-6">
-          <TrainingAnalytics trainings={trainings} />
-        </TabsContent>
-
-        {canManageTeam && (
-          <TabsContent value="resources" className="mt-6">
-            <TrainingResourceManager />
-          </TabsContent>
+      {/* Training History */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-800">ประวัติงานทั้งหมด</h3>
+        {filteredHistory.length > 0 ? (
+          filteredHistory.map((training) => (
+            <TrainingHistoryCard key={training.id} training={training} />
+          ))
+        ) : (
+          <div className="text-center py-12 text-gray-500">
+            <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+            <p className="text-lg mb-2">ไม่พบข้อมูลงานอบรม</p>
+            <p className="text-sm">ลองเปลี่ยนเงื่อนไขการค้นหา</p>
+          </div>
         )}
-
-        <TabsContent value="notifications" className="mt-6">
-          <TrainingNotifications />
-        </TabsContent>
-      </Tabs>
+      </div>
     </div>
   );
 };
