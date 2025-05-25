@@ -14,7 +14,6 @@ import {
   Clock,
   Car,
   FileText,
-  Star,
   Building,
   Target,
 } from "lucide-react";
@@ -35,8 +34,6 @@ interface TrainingHistoryCardProps {
     teamMembers: string[];
     vehicle?: string;
     notes?: string;
-    rating?: number;
-    feedback?: string;
   };
 }
 
@@ -54,24 +51,15 @@ const TrainingHistoryCard = ({ training }: TrainingHistoryCardProps) => {
     if (status === "completed") {
       return <Badge className="bg-green-100 text-green-800 border-green-200">เสร็จสิ้น</Badge>;
     }
-    return <Badge className="bg-blue-100 text-blue-800 border-blue-200">กำลังจะมา</Badge>;
-  };
-
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={`h-4 w-4 ${
-          i < Math.floor(rating) 
-            ? "text-yellow-400 fill-yellow-400" 
-            : "text-gray-300"
-        }`}
-      />
-    ));
+    return <Badge className="bg-orange-100 text-orange-800 border-orange-200">กำลังจะมา</Badge>;
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
+    <Card className={`overflow-hidden hover:shadow-lg transition-shadow duration-300 ${
+      training.status === 'upcoming' 
+        ? 'border-orange-200 bg-orange-50/30' 
+        : 'border-gray-200'
+    }`}>
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
           <div className="flex-1">
@@ -87,16 +75,6 @@ const TrainingHistoryCard = ({ training }: TrainingHistoryCardProps) => {
               </div>
             </div>
           </div>
-          {training.rating && (
-            <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-lg">
-              <div className="flex items-center gap-1">
-                {renderStars(training.rating)}
-              </div>
-              <span className="text-sm font-medium text-yellow-800 ml-1">
-                {training.rating.toFixed(1)}
-              </span>
-            </div>
-          )}
         </div>
       </CardHeader>
       
@@ -157,32 +135,16 @@ const TrainingHistoryCard = ({ training }: TrainingHistoryCardProps) => {
           </div>
         </div>
 
-        {/* Notes and Feedback */}
-        {(training.notes || training.feedback) && (
-          <div className="border-t pt-4 space-y-3">
-            {training.notes && (
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <FileText className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm font-medium text-gray-700">บันทึกเพิ่มเติม</span>
-                </div>
-                <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                  {training.notes}
-                </p>
-              </div>
-            )}
-            
-            {training.feedback && (
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Star className="h-4 w-4 text-yellow-500" />
-                  <span className="text-sm font-medium text-gray-700">ความเห็นจากผู้จัด</span>
-                </div>
-                <p className="text-sm text-gray-600 bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-                  {training.feedback}
-                </p>
-              </div>
-            )}
+        {/* Notes only */}
+        {training.notes && (
+          <div className="border-t pt-4">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="h-4 w-4 text-gray-500" />
+              <span className="text-sm font-medium text-gray-700">บันทึกเพิ่มเติม</span>
+            </div>
+            <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+              {training.notes}
+            </p>
           </div>
         )}
       </CardContent>

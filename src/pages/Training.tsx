@@ -2,14 +2,14 @@
 import { useState } from "react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { Users, Settings, Calendar, Search, Filter } from "lucide-react";
+import { Users, Settings, Calendar, Search, CheckCircle, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import TrainingHistoryCard from "@/components/training/TrainingHistoryCard";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@/contexts/UserContext";
 
-// Mock data for personal training history
+// Mock data for personal training history (removed rating and feedback)
 const PERSONAL_TRAINING_HISTORY = [
   {
     id: "TH001",
@@ -25,9 +25,7 @@ const PERSONAL_TRAINING_HISTORY = [
     status: "completed",
     teamMembers: ["สุรชัย มานะ", "วิภาพร ใจดี", "นภาพร วงศ์สกุล"],
     vehicle: "รถตู้ 1",
-    notes: "งานสำเร็จเรียบร้อย ผู้เข้าร่วมให้ความร่วมมือดี",
-    rating: 4.8,
-    feedback: "ทีมงานประสานงานได้ดีมาก"
+    notes: "งานสำเร็จเรียบร้อย ผู้เข้าร่วมให้ความร่วมมือดี"
   },
   {
     id: "TH002", 
@@ -43,9 +41,7 @@ const PERSONAL_TRAINING_HISTORY = [
     status: "completed",
     teamMembers: ["วิภาพร ใจดี", "พิไลพร จริยา"],
     vehicle: "รถเก๋ง 1",
-    notes: "อุปกรณ์เสียงมีปัญหาเล็กน้อยในช่วงแรก",
-    rating: 4.5,
-    feedback: "แก้ไขปัญหาได้รวดเร็ว"
+    notes: "อุปกรณ์เสียงมีปัญหาเล็กน้อยในช่วงแรก"
   },
   {
     id: "TH003",
@@ -61,9 +57,7 @@ const PERSONAL_TRAINING_HISTORY = [
     status: "upcoming",
     teamMembers: ["ธนกร พัฒนา", "วีระพงษ์ สุขใจ", "มนัส พากเพียร"],
     vehicle: "รถตู้ 2",
-    notes: "เตรียมอุปกรณ์โสตทัศนูปกรณ์พิเศษ",
-    rating: null,
-    feedback: null
+    notes: "เตรียมอุปกรณ์โสตทัศนูปกรณ์พิเศษ"
   },
   {
     id: "TH004",
@@ -79,9 +73,7 @@ const PERSONAL_TRAINING_HISTORY = [
     status: "upcoming",
     teamMembers: ["สุรชัย มานะ", "วิภาพร ใจดี", "ธนกร พัฒนา", "นภาพร วงศ์สกุล"],
     vehicle: "รถตู้ 1",
-    notes: "งานใหญ่ ต้องการทีมงานเยอะ",
-    rating: null,
-    feedback: null
+    notes: "งานใหญ่ ต้องการทีมงานเยอะ"
   },
   {
     id: "TH005",
@@ -97,9 +89,7 @@ const PERSONAL_TRAINING_HISTORY = [
     status: "completed",
     teamMembers: ["สุรชัย มานะ", "พิไลพร จริยา", "มนัส พากเพียร"],
     vehicle: "รถบัส",
-    notes: "ผู้เข้าร่วมเยอะ ต้องใช้รถบัส",
-    rating: 4.9,
-    feedback: "ประสานงานดีเยี่ยม"
+    notes: "ผู้เข้าร่วมเยอะ ต้องใช้รถบัส"
   }
 ];
 
@@ -126,12 +116,16 @@ const Training = () => {
     return matchesSearch && matchesStatus && matchesMonth;
   });
 
-  // Simple stats
+  // Sort to show upcoming first, then completed
+  const sortedHistory = [...filteredHistory].sort((a, b) => {
+    if (a.status === "upcoming" && b.status === "completed") return -1;
+    if (a.status === "completed" && b.status === "upcoming") return 1;
+    return new Date(b.date).getTime() - new Date(a.date).getTime();
+  });
+
+  // Simple stats (removed total hours)
   const completedCount = filteredHistory.filter(t => t.status === "completed").length;
   const upcomingCount = filteredHistory.filter(t => t.status === "upcoming").length;
-  const totalHours = filteredHistory
-    .filter(t => t.status === "completed")
-    .reduce((sum, t) => sum + parseInt(t.duration), 0);
 
   return (
     <Layout title="ประวัติงานอบรม">
@@ -160,46 +154,36 @@ const Training = () => {
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+        {/* Quick Stats - Focus on upcoming work */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
             <div className="flex items-center gap-3">
-              <div className="bg-green-100 p-2 rounded-lg">
-                <Calendar className="h-5 w-5 text-green-600" />
+              <div className="bg-orange-100 p-3 rounded-lg">
+                <Clock className="h-6 w-6 text-orange-600" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-green-800">{completedCount}</div>
-                <div className="text-sm text-green-600">งานที่เสร็จแล้ว</div>
+                <div className="text-3xl font-bold text-orange-800">{upcomingCount}</div>
+                <div className="text-sm text-orange-600 font-medium">งานที่กำลังจะมา</div>
+                <div className="text-xs text-orange-500">ต้องเตรียมความพร้อม</div>
               </div>
             </div>
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6">
             <div className="flex items-center gap-3">
-              <div className="bg-blue-100 p-2 rounded-lg">
-                <Calendar className="h-5 w-5 text-blue-600" />
+              <div className="bg-green-100 p-3 rounded-lg">
+                <CheckCircle className="h-6 w-6 text-green-600" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-blue-800">{upcomingCount}</div>
-                <div className="text-sm text-blue-600">งานที่กำลังจะมา</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-purple-100 p-2 rounded-lg">
-                <Users className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-purple-800">{totalHours}</div>
-                <div className="text-sm text-purple-600">ชั่วโมงงานรวม</div>
+                <div className="text-3xl font-bold text-green-800">{completedCount}</div>
+                <div className="text-sm text-green-600 font-medium">งานที่เสร็จแล้ว</div>
+                <div className="text-xs text-green-500">ประสบการณ์ที่ผ่านมา</div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Simple Filters */}
+        {/* Filters */}
         <div className="bg-white rounded-lg shadow-sm border p-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-2 relative">
@@ -218,8 +202,8 @@ const Training = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">ทุกสถานะ</SelectItem>
-                <SelectItem value="completed">เสร็จสิ้น</SelectItem>
                 <SelectItem value="upcoming">กำลังจะมา</SelectItem>
+                <SelectItem value="completed">เสร็จสิ้น</SelectItem>
               </SelectContent>
             </Select>
             
@@ -238,10 +222,20 @@ const Training = () => {
           </div>
         </div>
 
-        {/* Training History List */}
+        {/* Training History List - Show upcoming work prominently */}
         <div className="space-y-4">
-          {filteredHistory.length > 0 ? (
-            filteredHistory.map((training) => (
+          {upcomingCount > 0 && (
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Clock className="h-5 w-5 text-orange-600" />
+                <h3 className="font-semibold text-orange-800">งานที่กำลังจะมา ({upcomingCount} งาน)</h3>
+              </div>
+              <p className="text-sm text-orange-600 mb-4">งานเหล่านี้ต้องเตรียมความพร้อมล่วงหน้า</p>
+            </div>
+          )}
+
+          {sortedHistory.length > 0 ? (
+            sortedHistory.map((training) => (
               <TrainingHistoryCard key={training.id} training={training} />
             ))
           ) : (
