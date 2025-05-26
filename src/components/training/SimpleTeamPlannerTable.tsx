@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -61,7 +60,7 @@ const SimpleTeamPlannerTable = ({
     const thaiMonth = thaiMonths[parseInt(month) - 1];
     const thaiYear = parseInt(year) + 543;
     
-    return `${parseInt(day)} ${thaiMonth} ${thaiYear}`;
+    return `${parseInt(day)} ${thaiMonth}`;
   };
 
   const handleOpenMemberDialog = (assignmentId: string) => {
@@ -91,136 +90,110 @@ const SimpleTeamPlannerTable = ({
   const selectedAssignment = assignments.find(a => a.id === selectedAssignmentId);
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>หลักสูตรที่กำลังจะมาในเดือนนี้ ({courses.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {courses.length > 0 ? (
-              courses.map((course) => {
-                const courseAssignment = assignments.find(
-                  a => a.courseId === course.id && a.date === course.date
-                );
-                
-                return (
-                  <div key={`${course.id}-${course.date}`} className="border rounded-lg p-4 bg-white shadow-sm">
-                    <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-                      {/* Course Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start gap-3">
-                          <div className="flex-1">
-                            <h3 className="font-medium text-gray-900 mb-1">{course.name}</h3>
-                            <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
-                              <span>{formatThaiDate(course.date)}</span>
-                              <Badge variant="outline">{course.type}</Badge>
-                              <span>•</span>
-                              <span>{course.registered}/{course.capacity} คน</span>
-                              {course.instructor && (
-                                <>
-                                  <span>•</span>
-                                  <span>{course.instructor}</span>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Assignment Area */}
-                      <div className="lg:w-96">
-                        {courseAssignment ? (
-                          <div className="space-y-3">
-                            {/* Assigned Members */}
-                            <div className="bg-blue-50 rounded-lg p-3">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-medium text-blue-900">ทีมงาน</span>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleOpenMemberDialog(courseAssignment.id)}
-                                >
-                                  <Users className="h-3 w-3 mr-1" />
-                                  จัดการ
-                                </Button>
-                              </div>
-                              <div className="flex flex-wrap gap-1">
-                                {courseAssignment.members.length > 0 ? 
-                                  courseAssignment.members.map(memberId => {
-                                    const member = teamMembers.find(m => m.id === memberId);
-                                    return member ? (
-                                      <Badge key={member.id} className="bg-blue-100 text-blue-800 text-xs">
-                                        {member.name}
-                                      </Badge>
-                                    ) : null;
-                                  }) : (
-                                    <span className="text-xs text-gray-500 italic">ยังไม่มีเจ้าหน้าที่</span>
-                                  )}
-                              </div>
-                            </div>
-
-                            {/* Vehicle and Notes */}
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleOpenVehicleDialog(courseAssignment.id)}
-                                className="flex-1"
-                              >
-                                <Car className="h-3 w-3 mr-1" />
-                                {courseAssignment.vehicle ? 
-                                  vehicles.find(v => v.id === courseAssignment.vehicle)?.name || 'รถ' : 
-                                  'เลือกรถ'
-                                }
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleOpenNotesDialog(courseAssignment.id)}
-                              >
-                                <FileText className="h-3 w-3" />
-                              </Button>
-                            </div>
-
-                            {courseAssignment.notes && (
-                              <div className="text-xs bg-yellow-50 text-yellow-800 p-2 rounded border border-yellow-200">
-                                {courseAssignment.notes}
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <Button
-                            onClick={() => {
-                              const assignmentId = onCreateAssignment(course.id, course.date);
-                              handleOpenMemberDialog(assignmentId);
-                            }}
-                            className="w-full"
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            เพิ่มทีมงาน
-                          </Button>
-                        )}
+    <Card>
+      <CardHeader>
+        <CardTitle>หลักสูตรที่ต้องจัดทีมงาน ({courses.length})</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {courses.length > 0 ? (
+            courses.map((course) => {
+              const courseAssignment = assignments.find(
+                a => a.courseId === course.id && a.date === course.date
+              );
+              
+              return (
+                <div key={`${course.id}-${course.date}`} className="border rounded-lg p-4 bg-white">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    {/* Course Info */}
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-900 mb-2">{course.name}</h3>
+                      <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+                        <span className="font-medium">{formatThaiDate(course.date)}</span>
+                        <Badge variant="outline">{course.type}</Badge>
+                        <span>{course.registered}/{course.capacity} คน</span>
                       </div>
                     </div>
+
+                    {/* Assignment Controls */}
+                    <div className="lg:w-80">
+                      {courseAssignment ? (
+                        <div className="space-y-3">
+                          {/* Team Members */}
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">ทีมงาน:</span>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleOpenMemberDialog(courseAssignment.id)}
+                            >
+                              <Users className="h-3 w-3 mr-1" />
+                              {courseAssignment.members.length > 0 ? 
+                                `${courseAssignment.members.length} คน` : 'เลือก'
+                              }
+                            </Button>
+                          </div>
+
+                          {/* Vehicle and Notes */}
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleOpenVehicleDialog(courseAssignment.id)}
+                              className="flex-1"
+                            >
+                              <Car className="h-3 w-3 mr-1" />
+                              {courseAssignment.vehicle ? 
+                                vehicles.find(v => v.id === courseAssignment.vehicle)?.name || 'รถ' : 
+                                'เลือกรถ'
+                              }
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleOpenNotesDialog(courseAssignment.id)}
+                            >
+                              <FileText className="h-3 w-3" />
+                            </Button>
+                          </div>
+
+                          {courseAssignment.notes && (
+                            <div className="text-xs bg-yellow-50 text-yellow-800 p-2 rounded">
+                              {courseAssignment.notes}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <Button
+                          onClick={() => {
+                            const assignmentId = onCreateAssignment(course.id, course.date);
+                            handleOpenMemberDialog(assignmentId);
+                          }}
+                          className="w-full"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          จัดทีมงาน
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                );
-              })
-            ) : (
-              <div className="text-center py-12 text-gray-500">
-                <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                <p className="text-lg mb-2">ไม่พบข้อมูลหลักสูตรในเดือนนี้</p>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+                </div>
+              );
+            })
+          ) : (
+            <div className="text-center py-12 text-gray-500">
+              <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <p className="text-lg mb-2">ไม่พบหลักสูตรในเดือนนี้</p>
+            </div>
+          )}
+        </div>
+      </CardContent>
 
       {/* Member Assignment Dialog */}
       <Dialog open={memberDialogOpen} onOpenChange={setMemberDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>จัดการเจ้าหน้าที่</DialogTitle>
+            <DialogTitle>เลือกเจ้าหน้าที่</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">
@@ -310,7 +283,7 @@ const SimpleTeamPlannerTable = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </Card>
   );
 };
 

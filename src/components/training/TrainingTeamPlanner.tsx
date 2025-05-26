@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Calendar, Users, Search, Shield, Info } from "lucide-react";
+import { Users, Search, Shield } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -8,7 +8,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { useUser } from "@/contexts/UserContext";
 import useTeamAssignment from "@/hooks/useTeamAssignment";
 import SimpleTeamPlannerTable from "./SimpleTeamPlannerTable";
@@ -40,11 +39,8 @@ const TrainingTeamPlanner = () => {
           <h2 className="text-xl font-bold text-red-800 mb-2">
             ไม่มีสิทธิ์เข้าถึง
           </h2>
-          <p className="text-red-700 mb-4">
+          <p className="text-red-700">
             การวางแผนทีมงานเฉพาะผู้จัดการขึ้นไปเท่านั้น
-          </p>
-          <p className="text-sm text-red-600">
-            กรุณาติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์การเข้าถึง
           </p>
         </CardContent>
       </Card>
@@ -66,23 +62,15 @@ const TrainingTeamPlanner = () => {
       return courseMonth === selectedMonth && filterBySearch(course);
     });
 
-  // สถิติสำคัญ
-  const totalCourses = filteredCourses.length;
-  const assignedCourses = filteredCourses.filter(course => 
-    assignments.some(a => a.courseId === course.id && a.date === course.date)
-  ).length;
-  const unassignedCourses = totalCourses - assignedCourses;
-
   return (
     <div className="space-y-6">
-      {/* ส่วนหัวและการค้นหา */}
+      {/* Simple Controls */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Users className="h-5 w-5 text-blue-600" />
-              <span>วางแผนทีมงาน</span>
-              <Badge className="bg-green-100 text-green-800 text-xs">ผู้จัดการ+</Badge>
+              <span>จัดทีมงาน</span>
             </div>
             <select 
               value={selectedMonth} 
@@ -96,53 +84,19 @@ const TrainingTeamPlanner = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <Input
-                placeholder="ค้นหาหลักสูตร วิทยากร หรือบริษัท..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            
-            {/* สถิติแบบง่าย */}
-            <div className="flex gap-4 text-sm">
-              <div className="text-center">
-                <div className="font-bold text-blue-600">{totalCourses}</div>
-                <div className="text-gray-500">ทั้งหมด</div>
-              </div>
-              <div className="text-center">
-                <div className="font-bold text-green-600">{assignedCourses}</div>
-                <div className="text-gray-500">จัดทีมแล้ว</div>
-              </div>
-              <div className="text-center">
-                <div className="font-bold text-orange-600">{unassignedCourses}</div>
-                <div className="text-gray-500">ยังไม่จัดทีม</div>
-              </div>
-            </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="ค้นหาหลักสูตร วิทยากร หรือบริษัท..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
         </CardContent>
       </Card>
 
-      {/* คำแนะนำการใช้งาน */}
-      {unassignedCourses > 0 && (
-        <Card className="bg-orange-50 border-orange-200">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 text-orange-800">
-              <Info className="h-4 w-4" />
-              <p className="font-medium">
-                มี {unassignedCourses} หลักสูตรที่ยังไม่ได้จัดทีมงาน
-              </p>
-            </div>
-            <p className="text-sm text-orange-700 mt-1">
-              คลิกปุ่ม "เพิ่มทีมงาน" เพื่อเริ่มจัดเจ้าหน้าที่และรถสำหรับหลักสูตร
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* ตารางจัดการทีมงาน */}
+      {/* Team Planning Table */}
       <SimpleTeamPlannerTable
         courses={filteredCourses}
         assignments={assignments}
