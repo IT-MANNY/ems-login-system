@@ -17,7 +17,6 @@ import Attendance from "./pages/Attendance";
 import Training from "./pages/Training";
 import ManagerDashboard from "./pages/ManagerDashboard";
 import TeamRequests from "./pages/TeamRequests";
-import AdminDashboard from "./pages/AdminDashboard";
 import ManageTrainings from "./pages/ManageTrainings";
 import ManageAttendance from "./pages/ManageAttendance";
 import ManageEmployees from "./pages/ManageEmployees";
@@ -48,7 +47,6 @@ const App = () => (
             <Route path="/team-requests" element={<ProtectedRoute requiredRole="manager"><TeamRequests /></ProtectedRoute>} />
             
             {/* Admin Routes */}
-            <Route path="/admin-dashboard" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
             <Route path="/manage-trainings" element={<ProtectedRoute requiredRole="admin"><ManageTrainings /></ProtectedRoute>} />
             <Route path="/manage-attendance" element={<ProtectedRoute requiredRole="admin"><ManageAttendance /></ProtectedRoute>} />
             <Route path="/manage-employees" element={<ProtectedRoute requiredRole="admin"><ManageEmployees /></ProtectedRoute>} />

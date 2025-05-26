@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useUser } from "@/contexts/UserContext";
@@ -55,7 +54,6 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
     { title: "ประวัติอบรม", path: "/training", icon: <GraduationCap size={18} />, roles: ["user", "manager", "admin"] },
     { title: "แดชบอร์ดผู้จัดการ", path: "/manager-dashboard", icon: <LayoutDashboard size={18} />, roles: ["manager", "admin"] },
     { title: "คำขอของทีม", path: "/team-requests", icon: <ClipboardList size={18} />, roles: ["manager", "admin"] },
-    { title: "แดชบอร์ดผู้ดูแล", path: "/admin-dashboard", icon: <LayoutDashboard size={18} />, roles: ["admin"] },
     { title: "จัดการพนักงาน", path: "/manage-employees", icon: <Users size={18} />, roles: ["admin"] },
     { title: "จัดการแผนอบรม", path: "/manage-trainings", icon: <GraduationCap size={18} />, roles: ["admin"] },
     { title: "จัดการข้อมูลเวลา", path: "/manage-attendance", icon: <Clock size={18} />, roles: ["admin"] },
