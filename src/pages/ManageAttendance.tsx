@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Clock, Download, Filter, Search, Upload, UserIcon } from "lucide-react";
+import { CalendarIcon, Download, Filter, Search, Upload } from "lucide-react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -130,41 +130,36 @@ const ManageAttendance = () => {
   // รายการสถานะทั้งหมดที่มีอยู่ในข้อมูล
   const statuses = [...new Set(attendanceData.map(item => item.status))];
 
-  // จัดการการอัพโหลดไฟล์
+  // จัดการการอัพโหลดไฟล์จากเครื่องแสกนนิ้ว
   const handleFileUpload = (data) => {
-    // จำลองการอัพโหลดไฟล์สำเร็จ
+    console.log("กำลังประมวลผลไฟล์จากเครื่องแสกนนิ้ว:", data.file[0].name);
+    
+    // จำลองการประมวลผลไฟล์จากเครื่องแสกนนิ้ว
     setTimeout(() => {
       toast({
-        title: "อัพโหลดข้อมูลเวลาสำเร็จ",
-        description: `อัพโหลดไฟล์ ${data.file[0].name} เรียบร้อยแล้ว`,
+        title: "นำเข้าข้อมูลจากเครื่องแสกนนิ้วสำเร็จ",
+        description: `ประมวลผลไฟล์ ${data.file[0].name} เรียบร้อยแล้ว พบข้อมูลการเข้างาน ${filteredData.length} รายการ`,
       });
       setShowUploadForm(false);
       reset();
-    }, 1500);
+    }, 2000);
   };
 
   // จำลองการดาวน์โหลดข้อมูล
   const handleDownload = () => {
     toast({
       title: "ดาวน์โหลดข้อมูลสำเร็จ",
-      description: "ระบบกำลังดาวน์โหลดข้อมูลเวลาเข้า-ออกในรูปแบบ Excel",
+      description: "กำลังดาวน์โหลดข้อมูลเวลาเข้า-ออกในรูปแบบ Excel",
     });
-  };
-
-  // จัดการการแก้ไขข้อมูลการลงเวลาด้วยตนเอง
-  const handleManualEntry = (data) => {
-    toast({
-      title: "บันทึกข้อมูลสำเร็จ",
-      description: "บันทึกข้อมูลการลงเวลาด้วยตนเองเรียบร้อยแล้ว",
-    });
-    setShowUploadForm(false);
-    reset();
   };
 
   return (
-    <Layout title="จัดการข้อมูลเวลา">
+    <Layout title="จัดการข้อมูลเวลาเข้างาน">
       <div className="bg-white rounded-lg shadow p-6">
-        <p className="text-gray-500 mb-4">จัดการข้อมูลเวลาเข้า-ออกงานของพนักงาน นำเข้าข้อมูลจากไฟล์ หรือลงเวลาด้วยตนเอง</p>
+        <p className="text-gray-500 mb-4">
+          จัดการข้อมูลเวลาเข้า-ออกงานของพนักงาน โดยนำเข้าข้อมูลจากเครื่องแสกนนิ้วมือ 
+          ระบบจะรองรับไฟล์ในรูปแบบ Excel และ CSV ที่ส่งออกจากเครื่องแสกนนิ้วมือ
+        </p>
         
         {/* ส่วนควบคุมด้านบน */}
         <div className="flex flex-col md:flex-row justify-between mb-6 gap-4">
@@ -215,7 +210,7 @@ const ManageAttendance = () => {
               className="flex items-center gap-1"
             >
               <Upload className="h-4 w-4 mr-1" />
-              นำเข้าข้อมูล
+              นำเข้าข้อมูลจากเครื่องแสกน
             </Button>
             
             <Button 
@@ -229,77 +224,51 @@ const ManageAttendance = () => {
           </div>
         </div>
 
-        {/* ฟอร์มอัพโหลดไฟล์ */}
+        {/* ฟอร์มอัพโหลดไฟล์จากเครื่องแสกนนิ้ว */}
         {showUploadForm && (
           <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
-            <h3 className="text-lg font-medium mb-3">นำเข้าข้อมูลเวลา</h3>
+            <h3 className="text-lg font-medium mb-3">นำเข้าข้อมูลจากเครื่องแสกนนิ้วมือ</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              อัพโหลดไฟล์ข้อมูลการเข้างานที่ส่งออกจากเครื่องแสกนนิ้วมือ 
+              ระบบจะประมวลผลและจัดการข้อมูลให้อัตโนมัติ
+            </p>
             
-            <div className="grid gap-5">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                  <h4 className="font-medium mb-2">อัพโหลดไฟล์</h4>
-                  <form onSubmit={handleSubmit(handleFileUpload)} className="space-y-4">
-                    <div>
-                      <Label htmlFor="file">เลือกไฟล์ Excel หรือ CSV</Label>
-                      <Input 
-                        id="file" 
-                        type="file" 
-                        accept=".xlsx,.xls,.csv" 
-                        {...register("file", { required: true })} 
-                      />
-                      <p className="text-xs text-gray-500 mt-1">รองรับไฟล์นามสกุล .xlsx, .xls และ .csv</p>
-                    </div>
-                    <Button type="submit">อัพโหลด</Button>
-                  </form>
-                </div>
-
-                <div className="border-t md:border-l md:border-t-0 pt-4 md:pt-0 md:pl-5">
-                  <h4 className="font-medium mb-2">ลงเวลาด้วยตนเอง</h4>
-                  <form onSubmit={handleSubmit(handleManualEntry)} className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="employeeId">รหัสพนักงาน</Label>
-                        <Input id="employeeId" {...register("employeeId", { required: true })} />
-                      </div>
-                      <div>
-                        <Label htmlFor="entryDate">วันที่</Label>
-                        <Input id="entryDate" type="date" {...register("entryDate", { required: true })} />
-                      </div>
-                      <div>
-                        <Label htmlFor="timeIn">เวลาเข้างาน</Label>
-                        <div className="relative">
-                          <Clock className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-                          <Input id="timeIn" type="time" className="pl-9" {...register("timeIn")} />
-                        </div>
-                      </div>
-                      <div>
-                        <Label htmlFor="timeOut">เวลาออกงาน</Label>
-                        <div className="relative">
-                          <Clock className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-                          <Input id="timeOut" type="time" className="pl-9" {...register("timeOut")} />
-                        </div>
-                      </div>
-                      <div className="sm:col-span-2">
-                        <Label htmlFor="status">สถานะ</Label>
-                        <select
-                          id="status"
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                          {...register("status")}
-                        >
-                          <option value="ปกติ">ปกติ</option>
-                          <option value="มาสาย">มาสาย</option>
-                          <option value="ลาป่วย">ลาป่วย</option>
-                          <option value="ลากิจ">ลากิจ</option>
-                          <option value="ลาพักร้อน">ลาพักร้อน</option>
-                          <option value="ขาดงาน">ขาดงาน</option>
-                        </select>
-                      </div>
-                    </div>
-                    <Button type="submit">บันทึก</Button>
-                  </form>
-                </div>
+            <form onSubmit={handleSubmit(handleFileUpload)} className="space-y-4">
+              <div>
+                <Label htmlFor="file">เลือกไฟล์จากเครื่องแสกนนิ้วมือ</Label>
+                <Input 
+                  id="file" 
+                  type="file" 
+                  accept=".xlsx,.xls,.csv" 
+                  {...register("file", { required: true })} 
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  รองรับไฟล์นามสกุล .xlsx, .xls และ .csv จากเครื่องแสกนนิ้วมือเท่านั้น
+                </p>
               </div>
-            </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <h4 className="font-medium text-blue-800 mb-2">คำแนะนำการใช้งาน:</h4>
+                <ul className="text-sm text-blue-700 space-y-1">
+                  <li>• ส่งออกข้อมูลจากเครื่องแสกนนิ้วมือในรูปแบบ Excel หรือ CSV</li>
+                  <li>• ตรวจสอบให้แน่ใจว่าไฟล์มีข้อมูลรหัสพนักงาน, วันที่, เวลาเข้า-ออก</li>
+                  <li>• ระบบจะประมวลผลและแสดงผลข้อมูลให้อัตโนมัติ</li>
+                </ul>
+              </div>
+              
+              <div className="flex gap-2">
+                <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+                  อัพโหลดและประมวลผล
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setShowUploadForm(false)}
+                >
+                  ยกเลิก
+                </Button>
+              </div>
+            </form>
           </div>
         )}
 
@@ -338,7 +307,9 @@ const ManageAttendance = () => {
         {/* ตารางแสดงข้อมูล */}
         <div className="border rounded-md overflow-hidden">
           <Table>
-            <TableCaption>ข้อมูลการลงเวลาพนักงานประจำวันที่ {date ? format(date, "dd/MM/yyyy") : "ปัจจุบัน"}</TableCaption>
+            <TableCaption>
+              ข้อมูลการลงเวลาจากเครื่องแสกนนิ้วมือประจำวันที่ {date ? format(date, "dd/MM/yyyy") : "ปัจจุบัน"}
+            </TableCaption>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[100px]">รหัสพนักงาน</TableHead>

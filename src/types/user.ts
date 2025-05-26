@@ -50,14 +50,22 @@ export interface LeaveRequest {
   updatedAt: string;
 }
 
+// แก้ไข AttendanceRecord ให้สอดคล้องกับการนำเข้าข้อมูลจากเครื่องแสกนนิ้ว
 export interface AttendanceRecord {
   id: string;
   username: string;
+  employeeId: string;
+  employeeName: string;
+  department: string;
   date: string;
   timeIn: string;
   timeOut: string;
+  totalHours: string;
   hoursWorked: number;
+  status: 'ปกติ' | 'มาสาย' | 'ลาป่วย' | 'ลากิจ' | 'ลาพักร้อน' | 'ขาดงาน';
   notes?: string;
+  importedFrom?: 'fingerprint-scanner'; // ระบุแหล่งที่มาของข้อมูล
+  importedAt?: string; // วันที่นำเข้าข้อมูล
 }
 
 export interface TrainingRecord {
