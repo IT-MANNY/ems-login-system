@@ -21,7 +21,14 @@ import ManageTrainings from "./pages/ManageTrainings";
 import ManageAttendance from "./pages/ManageAttendance";
 import ManageEmployees from "./pages/ManageEmployees";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

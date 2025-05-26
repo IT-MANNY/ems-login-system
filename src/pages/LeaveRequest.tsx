@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { CalendarIcon, Upload, FileText, Clock, Timer, Sun, Sunset } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 const leaveFormSchema = z.object({
   type: z.string().min(1, "กรุณาเลือกประเภทการลา"),
