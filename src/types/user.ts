@@ -33,9 +33,14 @@ export interface LeaveRequest {
   id: string;
   username: string;
   type: 'sick' | 'vacation' | 'personal' | 'maternity';
+  mode: 'full-day' | 'half-day' | 'hourly';
   startDate: string;
-  endDate: string;
-  days: number;
+  endDate?: string;
+  halfDayPeriod?: 'morning' | 'afternoon';
+  startTime?: string;
+  endTime?: string;
+  days?: number;
+  hours?: number;
   reason: string;
   attachmentUrl?: string;
   status: 'pending' | 'approved' | 'rejected';
